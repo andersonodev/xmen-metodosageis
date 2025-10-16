@@ -159,8 +159,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Always include STATICFILES_DIRS for both development and production
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# Only add STATICFILES_DIRS if static directory exists and is not empty
+import os
+if os.path.exists(BASE_DIR / 'static') and os.listdir(BASE_DIR / 'static'):
+    STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # WhiteNoise configuration para Heroku
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
