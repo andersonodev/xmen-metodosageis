@@ -5,7 +5,6 @@ import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
-import dj_database_url
 
 # Load environment variables
 load_dotenv()
@@ -22,13 +21,17 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-xmen-agileteam-development
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-# Heroku configuration
-ALLOWED_HOSTS = []
-if 'HEROKU_APP_NAME' in os.environ:
-    ALLOWED_HOSTS.append(f"{os.environ['HEROKU_APP_NAME']}.herokuapp.com")
+# Heroku and development configuration
+ALLOWED_HOSTS = [
+    'xmen-agileteam-system-a41285506204.herokuapp.com',  # Heroku app URL
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+]
 
-# Development hosts
-ALLOWED_HOSTS.extend(os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(','))
+# Add custom ALLOWED_HOSTS from environment if available
+if os.getenv('ALLOWED_HOSTS'):
+    ALLOWED_HOSTS.extend(os.getenv('ALLOWED_HOSTS').split(','))
 
 # Application definition
 DJANGO_APPS = [
