@@ -98,9 +98,19 @@ WSGI_APPLICATION = 'xmen_agileteam.wsgi.application'
 ASGI_APPLICATION = 'xmen_agileteam.asgi.application'
 
 # Database
-# Usa PostgreSQL no Heroku, SQLite em desenvolvimento
+# Para o Heroku, vamos usar SQLite que é gratuito
+# Heroku PostgreSQL free tier não existe mais
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+# Para persistência no Heroku, usamos variável de ambiente
 if 'DATABASE_URL' in os.environ:
-    # Heroku PostgreSQL
+    # Se existir DATABASE_URL, usa ela (caso tenha add-on PostgreSQL)
+    import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get('DATABASE_URL'),
@@ -109,7 +119,7 @@ if 'DATABASE_URL' in os.environ:
         )
     }
 else:
-    # Desenvolvimento local
+    # SQLite para desenvolvimento e Heroku free
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -205,26 +215,15 @@ if 'HEROKU_APP_NAME' in os.environ:
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Redis Configuration - Heroku vs Local
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-
-# Channels Configuration
+# Channels Configuration - Usando camada em memória (gratuito)
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [REDIS_URL],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
-# Celery Configuration
-CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
+# Background Tasks removido - sem Redis/Celery para plan gratuito
+# Para tarefas em background em produção gratuita, usar django-background-tasks ou similar
 
 # DRF Spectacular
 SPECTACULAR_SETTINGS = {

@@ -1,34 +1,20 @@
 """
 Celery configuration for xmen_agileteam project.
+
+NOTA: Celery foi removido para compatibilidade com deploy gratuito.
+Para tarefas em background, considere usar:
+- django-background-tasks (para tarefas simples)
+- django-q (alternativa leve)
+- Scheduled jobs do Heroku (para tarefas periódicas)
 """
-import os
-from celery import Celery
-from django.conf import settings
 
-# Set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'xmen_agileteam.settings')
+# Configuração desabilitada para deploy gratuito
+# import os
+# from celery import Celery
+# from django.conf import settings
 
-app = Celery('xmen_agileteam')
-
-# Using a string here means the worker doesn't have to serialize
-# the configuration object to child processes.
-app.config_from_object('django.conf:settings', namespace='CELERY')
-
-# Load task modules from all registered Django apps.
-app.autodiscover_tasks()
-
-# Celery Beat Schedule
-app.conf.beat_schedule = {
-    'daily-deadline-alerts': {
-        'task': 'apps.notifications.tasks.daily_deadline_alerts',
-        'schedule': 60.0 * 60 * 24,  # Daily at midnight
-    },
-    'recalc-project-metrics': {
-        'task': 'apps.dashboards.tasks.recalc_project_metrics',
-        'schedule': 60.0 * 60,  # Every hour
-    },
-    'generate-recommendations': {
-        'task': 'apps.recommendations.tasks.generate_recommendations',
-        'schedule': 60.0 * 60 * 6,  # Every 6 hours
-    },
-}
+# Para reativar Celery quando tiver Redis disponível:
+# 1. Descomente as importações acima
+# 2. Adicione redis==5.0.1 e celery==5.3.4 ao requirements.txt
+# 3. Adicione REDIS_URL nas variáveis de ambiente
+# 4. Reative o worker no Procfile
