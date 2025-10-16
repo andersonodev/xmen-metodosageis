@@ -159,18 +159,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Only add STATICFILES_DIRS if static directory exists and is not empty
-import os
-if os.path.exists(BASE_DIR / 'static') and os.listdir(BASE_DIR / 'static'):
-    STATICFILES_DIRS = [BASE_DIR / 'static']
+# Always include STATICFILES_DIRS for both development and production
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # WhiteNoise configuration para Heroku
-if DEBUG:
-    # Development
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-else:
-    # Production with WhiteNoise
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
