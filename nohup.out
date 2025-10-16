@@ -1,0 +1,9 @@
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+October 16, 2025 - 14:12:33
+Django version 4.2.7, using settings 'xmen_agileteam.settings'
+Starting ASGI/Daphne version 4.2.1 development server at http://127.0.0.1:8002/
+Quit the server with CONTROL-C.
+HTTP GET /projects/ 200 [0.06, 127.0.0.1:59883]

@@ -1,0 +1,1 @@
+# Isso torna a pasta apps um módulo Python

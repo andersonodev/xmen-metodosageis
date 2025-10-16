@@ -1,0 +1,606 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Skills - Sistema Ágil{% endblock %}
+
+{% block extra_css %}
+<style>
+    .skills-header {
+        background: linear-gradient(135deg, #FF6B00 0%, #F97316 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(255, 107, 0, 0.15);
+    }
+
+    .skills-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .skills-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+
+    .skills-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border-left: 4px solid #FF6B00;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #FF6B00;
+        margin: 0;
+    }
+
+    .stat-label {
+        color: #6B7280;
+        font-size: 0.9rem;
+        margin: 0.25rem 0 0 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .skills-content {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .skills-main {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .skills-sidebar {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        position: sticky;
+        top: 2rem;
+    }
+
+    .category-section {
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .category-section:last-child {
+        border-bottom: none;
+    }
+
+    .category-header {
+        background: #F9FAFB;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .category-header:hover {
+        background: #F3F4F6;
+    }
+
+    .category-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #FF6B00, #F97316);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .category-info h3 {
+        margin: 0;
+        color: #1F2937;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .category-info p {
+        margin: 0.25rem 0 0 0;
+        color: #6B7280;
+        font-size: 0.9rem;
+    }
+
+    .category-toggle {
+        margin-left: auto;
+        color: #9CA3AF;
+        transition: transform 0.2s ease;
+    }
+
+    .category-toggle.expanded {
+        transform: rotate(180deg);
+    }
+
+    .skills-grid {
+        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .skill-card {
+        background: #F9FAFB;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #E5E7EB;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .skill-card:hover {
+        background: #F3F4F6;
+        border-color: #FF6B00;
+        transform: translateY(-1px);
+    }
+
+    .skill-card.user-has {
+        background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+        border-color: #FF6B00;
+    }
+
+    .skill-name {
+        font-weight: 600;
+        color: #1F2937;
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+    }
+
+    .skill-description {
+        color: #6B7280;
+        font-size: 0.85rem;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .skill-level {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: #FF6B00;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .add-skill-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: #10B981;
+        color: white;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .skill-card:hover .add-skill-btn {
+        opacity: 1;
+    }
+
+    .filter-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-section h4 {
+        margin: 0 0 1rem 0;
+        color: #1F2937;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .filter-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-btn {
+        background: #F9FAFB;
+        border: 1px solid #E5E7EB;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+        font-size: 0.9rem;
+        color: #4B5563;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: #FF6B00;
+        color: white;
+        border-color: #FF6B00;
+    }
+
+    .search-box {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .search-box:focus {
+        outline: none;
+        border-color: #FF6B00;
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6B7280;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #D1D5DB;
+    }
+
+    @media (max-width: 1024px) {
+        .skills-content {
+            grid-template-columns: 1fr;
+        }
+
+        .skills-sidebar {
+            position: static;
+            order: -1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .skills-header {
+            padding: 1.5rem;
+        }
+
+        .skills-header h1 {
+            font-size: 2rem;
+        }
+
+        .skills-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .skills-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="skills-header">
+        <h1><i class="fas fa-cogs"></i> Central de Habilidades</h1>
+        <p>Gerencie e desenvolva suas competências técnicas e comportamentais</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="skills-stats">
+        <div class="stat-card">
+            <h2 class="stat-number">{{ categories.count }}</h2>
+            <p class="stat-label">Categorias</p>
+        </div>
+        <div class="stat-card">
+            <h2 class="stat-number">{{ total_skills }}</h2>
+            <p class="stat-label">Habilidades Disponíveis</p>
+        </div>
+        <div class="stat-card">
+            <h2 class="stat-number">{{ user_skills.count }}</h2>
+            <p class="stat-label">Suas Habilidades</p>
+        </div>
+        <div class="stat-card">
+            <h2 class="stat-number">{{ avg_level|floatformat:1 }}</h2>
+            <p class="stat-label">Nível Médio</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="skills-content">
+        <!-- Skills List -->
+        <div class="skills-main">
+            {% for category in categories %}
+            <div class="category-section" data-category="{{ category.id }}">
+                <div class="category-header" onclick="toggleCategory({{ category.id }})">
+                    <div class="category-icon">
+                        {% if category.icon %}
+                            <i class="{{ category.icon }}"></i>
+                        {% else %}
+                            <i class="fas fa-star"></i>
+                        {% endif %}
+                    </div>
+                    <div class="category-info">
+                        <h3>{{ category.name }}</h3>
+                        <p>{{ category.skills.count }} habilidade{{ category.skills.count|pluralize }}</p>
+                    </div>
+                    <i class="fas fa-chevron-down category-toggle" id="toggle-{{ category.id }}"></i>
+                </div>
+                <div class="skills-grid" id="skills-{{ category.id }}" style="display: none;">
+                    {% for skill in category.skills.all %}
+                    <div class="skill-card {% if skill.id in user_skill_ids %}user-has{% endif %}" data-skill="{{ skill.id }}">
+                        <h4 class="skill-name">{{ skill.name }}</h4>
+                        {% if skill.description %}
+                            <p class="skill-description">{{ skill.description }}</p>
+                        {% endif %}
+                        
+                        {% if skill.id in user_skill_ids %}
+                            {% for user_skill in user_skills %}
+                                {% if user_skill.skill.id == skill.id %}
+                                    <span class="skill-level">Nível {{ user_skill.level }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <button class="add-skill-btn" onclick="addSkill({{ skill.id }})">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>Nenhuma habilidade nesta categoria ainda.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-cogs"></i>
+                <p>Nenhuma categoria de habilidades cadastrada ainda.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="skills-sidebar">
+            <!-- Search -->
+            <div class="filter-section">
+                <h4><i class="fas fa-search"></i> Buscar</h4>
+                <input type="text" class="search-box" placeholder="Buscar habilidades..." id="searchInput">
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-section">
+                <h4><i class="fas fa-filter"></i> Filtros</h4>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">
+                        <i class="fas fa-list"></i> Todas as Habilidades
+                    </button>
+                    <button class="filter-btn" data-filter="mine">
+                        <i class="fas fa-user"></i> Minhas Habilidades
+                    </button>
+                    <button class="filter-btn" data-filter="missing">
+                        <i class="fas fa-plus-circle"></i> Não Possuo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="filter-section">
+                <h4><i class="fas fa-bolt"></i> Ações Rápidas</h4>
+                <div class="filter-buttons">
+                    <button class="filter-btn" onclick="expandAllCategories()">
+                        <i class="fas fa-expand-arrows-alt"></i> Expandir Todas
+                    </button>
+                    <button class="filter-btn" onclick="collapseAllCategories()">
+                        <i class="fas fa-compress-arrows-alt"></i> Recolher Todas
+                    </button>
+                </div>
+            </div>
+
+            <!-- My Skills Summary -->
+            {% if user_skills %}
+            <div class="filter-section">
+                <h4><i class="fas fa-trophy"></i> Seus Destaques</h4>
+                <div style="space-y: 0.5rem;">
+                    {% for skill in user_skills|slice:":5" %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: #F9FAFB; border-radius: 6px; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.85rem; color: #4B5563;">{{ skill.skill.name }}</span>
+                        <span style="background: #FF6B00; color: white; padding: 0.125rem 0.5rem; border-radius: 10px; font-size: 0.7rem;">{{ skill.level }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Skill Modal -->
+<div class="modal fade" id="addSkillModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Habilidade</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSkillForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="skillId" name="skill_id">
+                    <div class="mb-3">
+                        <label for="skillLevel" class="form-label">Nível de Proficiência</label>
+                        <select class="form-select" id="skillLevel" name="level" required>
+                            <option value="">Selecione o nível</option>
+                            <option value="1">1 - Iniciante</option>
+                            <option value="2">2 - Básico</option>
+                            <option value="3">3 - Intermediário</option>
+                            <option value="4">4 - Avançado</option>
+                            <option value="5">5 - Especialista</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="submitSkill()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle category visibility
+function toggleCategory(categoryId) {
+    const skillsGrid = document.getElementById(`skills-${categoryId}`);
+    const toggle = document.getElementById(`toggle-${categoryId}`);
+    
+    if (skillsGrid.style.display === 'none') {
+        skillsGrid.style.display = 'grid';
+        toggle.classList.add('expanded');
+    } else {
+        skillsGrid.style.display = 'none';
+        toggle.classList.remove('expanded');
+    }
+}
+
+// Expand all categories
+function expandAllCategories() {
+    document.querySelectorAll('.skills-grid').forEach(grid => {
+        grid.style.display = 'grid';
+    });
+    document.querySelectorAll('.category-toggle').forEach(toggle => {
+        toggle.classList.add('expanded');
+    });
+}
+
+// Collapse all categories
+function collapseAllCategories() {
+    document.querySelectorAll('.skills-grid').forEach(grid => {
+        grid.style.display = 'none';
+    });
+    document.querySelectorAll('.category-toggle').forEach(toggle => {
+        toggle.classList.remove('expanded');
+    });
+}
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const skillCards = document.querySelectorAll('.skill-card');
+    
+    skillCards.forEach(card => {
+        const skillName = card.querySelector('.skill-name').textContent.toLowerCase();
+        const skillDesc = card.querySelector('.skill-description');
+        const skillDescText = skillDesc ? skillDesc.textContent.toLowerCase() : '';
+        
+        if (skillName.includes(searchTerm) || skillDescText.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// Filter functionality
+document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        // Update active filter
+        document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        const skillCards = document.querySelectorAll('.skill-card');
+        
+        skillCards.forEach(card => {
+            switch(filter) {
+                case 'all':
+                    card.style.display = 'block';
+                    break;
+                case 'mine':
+                    card.style.display = card.classList.contains('user-has') ? 'block' : 'none';
+                    break;
+                case 'missing':
+                    card.style.display = card.classList.contains('user-has') ? 'none' : 'block';
+                    break;
+            }
+        });
+    });
+});
+
+// Add skill functionality
+function addSkill(skillId) {
+    document.getElementById('skillId').value = skillId;
+    const modal = new bootstrap.Modal(document.getElementById('addSkillModal'));
+    modal.show();
+}
+
+function submitSkill() {
+    const form = document.getElementById('addSkillForm');
+    const formData = new FormData(form);
+    
+    fetch('{% url "skills:add_user_skill" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro ao adicionar habilidade: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erro ao adicionar habilidade');
+    });
+}
+
+// Initialize with first category expanded
+document.addEventListener('DOMContentLoaded', function() {
+    const firstCategory = document.querySelector('.category-section');
+    if (firstCategory) {
+        const categoryId = firstCategory.dataset.category;
+        toggleCategory(categoryId);
+    }
+});
+</script>
+{% endblock %}

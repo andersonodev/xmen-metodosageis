@@ -1,0 +1,782 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ integration.name }} - Detalhes - Sistema Ágil{% endblock %}
+
+{% block page_title %}{{ integration.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .integration-detail-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .integration-header {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .integration-status {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .integration-status.active {
+        background: rgba(22, 163, 74, 0.2);
+        color: var(--success);
+        border: 1px solid var(--success);
+    }
+
+    .integration-status.inactive {
+        background: rgba(220, 38, 38, 0.2);
+        color: var(--error);
+        border: 1px solid var(--error);
+    }
+
+    .integration-status.pending {
+        background: rgba(234, 179, 8, 0.2);
+        color: var(--warning);
+        border: 1px solid var(--warning);
+    }
+
+    .integration-title-section {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .integration-icon {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        flex-shrink: 0;
+    }
+
+    .integration-icon.github {
+        background: #333;
+    }
+
+    .integration-icon.slack {
+        background: #4A154B;
+    }
+
+    .integration-icon.jira {
+        background: #0052CC;
+    }
+
+    .integration-icon.trello {
+        background: #0079BF;
+    }
+
+    .integration-icon.azure {
+        background: #0078D4;
+    }
+
+    .integration-icon.aws {
+        background: #FF9900;
+    }
+
+    .integration-icon.default {
+        background: var(--primary);
+    }
+
+    .integration-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .integration-platform {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
+    }
+
+    .integration-description {
+        color: var(--text-primary);
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-top: 1rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn.primary {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .action-btn.primary:hover {
+        background: var(--hover);
+    }
+
+    .action-btn.secondary {
+        background: var(--bg-highlight);
+        color: var(--text-secondary);
+    }
+
+    .action-btn.secondary:hover {
+        background: var(--hover-bg);
+        color: var(--primary);
+    }
+
+    .action-btn.danger {
+        background: var(--error);
+        color: white;
+        border-color: var(--error);
+    }
+
+    .action-btn.danger:hover {
+        background: #B91C1C;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .detail-value {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .config-section {
+        grid-column: 1 / -1;
+    }
+
+    .config-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: var(--bg-highlight);
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .config-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .config-label {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .config-value {
+        color: var(--text-secondary);
+        font-family: monospace;
+        font-size: 0.875rem;
+        background: var(--bg-secondary);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid var(--border);
+    }
+
+    .logs-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .logs-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .refresh-logs-btn {
+        padding: 0.5rem 1rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .refresh-logs-btn:hover {
+        background: var(--hover);
+    }
+
+    .logs-container {
+        background: #1a1a1a;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 0.875rem;
+    }
+
+    .log-entry {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .log-timestamp {
+        color: #888;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .log-level {
+        padding: 0.125rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        flex-shrink: 0;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .log-level.info {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60A5FA;
+    }
+
+    .log-level.success {
+        background: rgba(34, 197, 94, 0.2);
+        color: #4ADE80;
+    }
+
+    .log-level.warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: #FBBF24;
+    }
+
+    .log-level.error {
+        background: rgba(239, 68, 68, 0.2);
+        color: #F87171;
+    }
+
+    .log-message {
+        color: #e5e5e5;
+        flex: 1;
+        line-height: 1.4;
+    }
+
+    .sync-section {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .sync-btn {
+        padding: 0.75rem 1.5rem;
+        background: var(--success);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sync-btn:hover {
+        background: #059669;
+    }
+
+    .sync-btn:disabled {
+        background: var(--text-inactive);
+        cursor: not-allowed;
+    }
+
+    .back-btn {
+        margin-bottom: 2rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--bg-highlight);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background: var(--hover-bg);
+        color: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .integration-title-section {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .integration-status {
+            position: static;
+            margin-bottom: 1rem;
+            align-self: center;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .sync-section {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="integration-detail-container">
+    <!-- Back Button -->
+    <a href="{% url 'integrations:list' %}" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        Voltar para Integrações
+    </a>
+
+    <!-- Integration Header -->
+    <div class="integration-header">
+        <div class="integration-status {{ integration.status }}">
+            {% if integration.status == 'active' %}
+                <i class="fas fa-check-circle"></i> Ativa
+            {% elif integration.status == 'inactive' %}
+                <i class="fas fa-times-circle"></i> Inativa
+            {% else %}
+                <i class="fas fa-clock"></i> Pendente
+            {% endif %}
+        </div>
+
+        <div class="integration-title-section">
+            <div class="integration-icon {{ integration.platform|lower|default:'default' }}">
+                {% if integration.platform == 'GitHub' %}
+                    <i class="fab fa-github"></i>
+                {% elif integration.platform == 'Slack' %}
+                    <i class="fab fa-slack"></i>
+                {% elif integration.platform == 'Jira' %}
+                    <i class="fab fa-jira"></i>
+                {% elif integration.platform == 'Trello' %}
+                    <i class="fab fa-trello"></i>
+                {% elif integration.platform == 'Azure' %}
+                    <i class="fab fa-microsoft"></i>
+                {% elif integration.platform == 'AWS' %}
+                    <i class="fab fa-aws"></i>
+                {% else %}
+                    <i class="fas fa-plug"></i>
+                {% endif %}
+            </div>
+            <div>
+                <h1 class="integration-title">{{ integration.name }}</h1>
+                <p class="integration-platform">{{ integration.platform }}</p>
+            </div>
+        </div>
+
+        {% if integration.description %}
+        <p class="integration-description">{{ integration.description }}</p>
+        {% endif %}
+
+        <div class="action-buttons">
+            {% if integration.status == 'active' %}
+                <button class="action-btn secondary" onclick="toggleIntegration('disable')">
+                    <i class="fas fa-pause"></i> Pausar Integração
+                </button>
+            {% else %}
+                <button class="action-btn primary" onclick="toggleIntegration('enable')">
+                    <i class="fas fa-play"></i> Ativar Integração
+                </button>
+            {% endif %}
+            <a href="{% url 'integrations:edit' integration.id %}" class="action-btn secondary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <button class="action-btn danger" onclick="deleteIntegration()">
+                <i class="fas fa-trash"></i> Excluir
+            </button>
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="details-grid">
+        <!-- Basic Information -->
+        <div class="detail-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Informações Básicas
+            </h2>
+            <div class="detail-item">
+                <span class="detail-label">Criado em:</span>
+                <span class="detail-value">{{ integration.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Última atualização:</span>
+                <span class="detail-value">{{ integration.updated_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Criado por:</span>
+                <span class="detail-value">{{ integration.created_by.get_full_name|default:integration.created_by.username }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Endpoint:</span>
+                <span class="detail-value">{{ integration.endpoint|default:"Não configurado" }}</span>
+            </div>
+        </div>
+
+        <!-- Sync Information -->
+        <div class="detail-section">
+            <h2 class="section-title">
+                <i class="fas fa-sync"></i>
+                Sincronização
+            </h2>
+            <div class="detail-item">
+                <span class="detail-label">Última sincronização:</span>
+                <span class="detail-value">
+                    {% if integration.last_sync %}
+                        {{ integration.last_sync|date:"d/m/Y H:i" }}
+                    {% else %}
+                        Nunca sincronizado
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Próxima sincronização:</span>
+                <span class="detail-value">
+                    {% if integration.next_sync %}
+                        {{ integration.next_sync|date:"d/m/Y H:i" }}
+                    {% else %}
+                        Manual
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Frequência:</span>
+                <span class="detail-value">
+                    {% if integration.sync_frequency %}
+                        {{ integration.get_sync_frequency_display }}
+                    {% else %}
+                        Manual
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Auto-sync:</span>
+                <span class="detail-value">
+                    {% if integration.auto_sync %}
+                        <i class="fas fa-check text-success"></i> Ativo
+                    {% else %}
+                        <i class="fas fa-times text-error"></i> Inativo
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Configuration -->
+        {% if integration.config %}
+        <div class="detail-section config-section">
+            <h2 class="section-title">
+                <i class="fas fa-cog"></i>
+                Configurações
+            </h2>
+            {% for key, value in integration.config.items %}
+            <div class="config-item">
+                <span class="config-label">{{ key|title }}:</span>
+                <span class="config-value">
+                    {% if 'password' in key|lower or 'token' in key|lower or 'secret' in key|lower %}
+                        ********
+                    {% else %}
+                        {{ value }}
+                    {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sync Actions -->
+    <div class="sync-section">
+        <button class="sync-btn" onclick="syncNow()" {% if integration.status != 'active' %}disabled{% endif %}>
+            <i class="fas fa-sync"></i>
+            Sincronizar Agora
+        </button>
+        <button class="sync-btn" onclick="testConnection()" style="background: var(--primary);">
+            <i class="fas fa-plug"></i>
+            Testar Conexão
+        </button>
+    </div>
+
+    <!-- Logs Section -->
+    <div class="logs-section">
+        <div class="logs-header">
+            <h2 class="section-title">
+                <i class="fas fa-file-alt"></i>
+                Logs de Atividade
+            </h2>
+            <button class="refresh-logs-btn" onclick="refreshLogs()">
+                <i class="fas fa-refresh"></i> Atualizar
+            </button>
+        </div>
+        <div class="logs-container" id="logs-container">
+            {% if logs %}
+                {% for log in logs %}
+                <div class="log-entry">
+                    <span class="log-timestamp">{{ log.timestamp|date:"H:i:s" }}</span>
+                    <span class="log-level {{ log.level }}">{{ log.level|upper }}</span>
+                    <span class="log-message">{{ log.message }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="log-entry">
+                    <span class="log-timestamp">--:--:--</span>
+                    <span class="log-level info">INFO</span>
+                    <span class="log-message">Nenhum log disponível</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleIntegration(action) {
+    const actionText = action === 'enable' ? 'ativar' : 'pausar';
+    
+    if (!confirm(`Deseja ${actionText} esta integração?`)) {
+        return;
+    }
+
+    fetch(`/integrations/{{ integration.id }}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: action })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro ao ' + actionText + ' integração: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling integration:', error);
+        alert('Erro ao ' + actionText + ' integração');
+    });
+}
+
+function deleteIntegration() {
+    if (!confirm('Deseja realmente excluir esta integração? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+
+    fetch(`/integrations/{{ integration.id }}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/integrations/';
+        } else {
+            alert('Erro ao excluir integração: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting integration:', error);
+        alert('Erro ao excluir integração');
+    });
+}
+
+function syncNow() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando...';
+
+    fetch(`/integrations/{{ integration.id }}/sync/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Sincronização iniciada com sucesso!');
+            refreshLogs();
+        } else {
+            alert('Erro ao iniciar sincronização: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error syncing integration:', error);
+        alert('Erro ao sincronizar integração');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+function testConnection() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testando...';
+
+    fetch(`/integrations/{{ integration.id }}/test/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Conexão testada com sucesso!');
+        } else {
+            alert('Erro na conexão: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error testing connection:', error);
+        alert('Erro ao testar conexão');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+function refreshLogs() {
+    fetch(`/integrations/{{ integration.id }}/logs/`, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const logsContainer = document.getElementById('logs-container');
+            if (data.logs && data.logs.length > 0) {
+                logsContainer.innerHTML = data.logs.map(log => `
+                    <div class="log-entry">
+                        <span class="log-timestamp">${log.timestamp}</span>
+                        <span class="log-level ${log.level}">${log.level.toUpperCase()}</span>
+                        <span class="log-message">${log.message}</span>
+                    </div>
+                `).join('');
+            } else {
+                logsContainer.innerHTML = `
+                    <div class="log-entry">
+                        <span class="log-timestamp">--:--:--</span>
+                        <span class="log-level info">INFO</span>
+                        <span class="log-message">Nenhum log disponível</span>
+                    </div>
+                `;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing logs:', error);
+    });
+}
+
+// Auto-refresh logs every 30 seconds
+setInterval(refreshLogs, 30000);
+
+// Add CSRF token
+{% csrf_token %}
+</script>
+{% endblock %}

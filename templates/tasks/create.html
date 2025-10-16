@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Tarefa{% if project %} - {{ project.name }}{% endif %} - Agile Intelligence</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #121212 0%, #2c2c2c 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #FF6B00;
+        }
+
+        .header p {
+            color: #e0e0e0;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .form-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #121212;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #FF6B00;
+        }
+
+        .section-title i {
+            color: #FF6B00;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #FF6B00;
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-help {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .priority-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .priority-option {
+            position: relative;
+        }
+
+        .priority-option input[type="radio"] {
+            display: none;
+        }
+
+        .priority-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .priority-high .priority-label {
+            color: #dc3545;
+        }
+
+        .priority-medium .priority-label {
+            color: #f57c00;
+        }
+
+        .priority-low .priority-label {
+            color: #28a745;
+        }
+
+        .priority-option input[type="radio"]:checked + .priority-label {
+            border-color: #FF6B00;
+            background: rgba(255, 107, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            min-width: 150px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B00 0%, #F97316 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .user-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .user-option {
+            position: relative;
+        }
+
+        .user-option input[type="radio"] {
+            display: none;
+        }
+
+        .user-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B00 0%, #F97316 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .user-info h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+            color: #333;
+        }
+
+        .user-info p {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .user-option input[type="radio"]:checked + .user-label {
+            border-color: #FF6B00;
+            background: rgba(255, 107, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem auto;
+                padding: 0 1rem;
+            }
+
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .priority-options {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* Animações */
+        .form-container {
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>
+                <i class="fas fa-plus-circle"></i>
+                Nova Tarefa
+            </h1>
+            <p>
+                {% if project %}
+                    Criar uma nova tarefa para o projeto "{{ project.name }}"
+                {% else %}
+                    Criar uma nova tarefa
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-container">
+            <!-- Mensagens -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" id="task-form">
+                {% csrf_token %}
+                
+                <!-- Informações Básicas -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Informações da Tarefa
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="title" class="form-label required">Título da Tarefa</label>
+                            <input 
+                                type="text" 
+                                id="title" 
+                                name="title" 
+                                class="form-control"
+                                placeholder="Ex: Implementar sistema de autenticação"
+                                required
+                                maxlength="200"
+                                autocomplete="off"
+                            >
+                            <div class="form-help">
+                                Seja específico e descritivo (máximo 200 caracteres)
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="description" class="form-label">Descrição</label>
+                            <textarea 
+                                id="description" 
+                                name="description" 
+                                class="form-control"
+                                placeholder="Descreva os detalhes, requisitos e critérios de aceite da tarefa..."
+                                maxlength="1000"
+                            ></textarea>
+                            <div class="form-help">
+                                Inclua detalhes, requisitos e critérios de aceite
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configurações -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        Configurações
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="column" class="form-label">Status Inicial</label>
+                            <select id="column" name="column" class="form-control">
+                                {% for column in columns %}
+                                    <option value="{{ column.id }}" {% if forloop.first %}selected{% endif %}>
+                                        {{ column.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {% if project %}
+                        <div class="form-group">
+                            <label class="form-label">Projeto</label>
+                            <input type="text" class="form-control" value="{{ project.name }}" readonly>
+                            <div class="form-help">Projeto selecionado</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Prioridade -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Prioridade
+                    </div>
+
+                    <div class="priority-options">
+                        <div class="priority-option priority-high">
+                            <input type="radio" id="priority-4" name="priority" value="4">
+                            <label for="priority-4" class="priority-label">
+                                <i class="fas fa-fire"></i>
+                                Crítica
+                            </label>
+                        </div>
+                        <div class="priority-option priority-high">
+                            <input type="radio" id="priority-3" name="priority" value="3">
+                            <label for="priority-3" class="priority-label">
+                                <i class="fas fa-arrow-up"></i>
+                                Alta
+                            </label>
+                        </div>
+                        <div class="priority-option priority-medium">
+                            <input type="radio" id="priority-2" name="priority" value="2" checked>
+                            <label for="priority-2" class="priority-label">
+                                <i class="fas fa-minus-circle"></i>
+                                Normal
+                            </label>
+                        </div>
+                        <div class="priority-option priority-low">
+                            <input type="radio" id="priority-1" name="priority" value="1">
+                            <label for="priority-1" class="priority-label">
+                                <i class="fas fa-chevron-down"></i>
+                                Baixa
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Atribuição -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-user-tag"></i>
+                        Atribuir Tarefa
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Responsável (Opcional)</label>
+                        <div class="user-selector">
+                            <div class="user-option">
+                                <input type="radio" id="assigned-none" name="assigned_to" value="">
+                                <label for="assigned-none" class="user-label">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user-slash"></i>
+                                    </div>
+                                    <div class="user-info">
+                                        <h4>Sem responsável</h4>
+                                        <p>Tarefa não atribuída</p>
+                                    </div>
+                                </label>
+                            </div>
+                            {% for user in users %}
+                            <div class="user-option">
+                                <input type="radio" id="assigned-{{ user.id }}" name="assigned_to" value="{{ user.id }}">
+                                <label for="assigned-{{ user.id }}" class="user-label">
+                                    <div class="user-avatar">
+                                        {{ user.first_name|first|default:user.username|first|upper }}
+                                    </div>
+                                    <div class="user-info">
+                                        <h4>{{ user.get_full_name|default:user.username }}</h4>
+                                        <p>{{ user.email }}</p>
+                                    </div>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Criar Tarefa
+                    </button>
+                    <a href="{% if project %}{% url 'tasks:project_board' project.pk %}{% else %}{% url 'tasks:board' %}{% endif %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('task-form');
+            const titleInput = document.getElementById('title');
+
+            // Foco automático no primeiro campo
+            titleInput.focus();
+
+            // Validação em tempo real
+            titleInput.addEventListener('input', function() {
+                if (this.value.trim().length < 3) {
+                    this.style.borderColor = '#dc3545';
+                } else {
+                    this.style.borderColor = '#28a745';
+                }
+            });
+
+            // Animação dos campos ao focar
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.transform = 'scale(1.02)';
+                    this.style.transition = 'transform 0.2s ease';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+
+            // Contador de caracteres para textarea
+            const textarea = document.getElementById('description');
+            const helpText = textarea.nextElementSibling;
+            
+            textarea.addEventListener('input', function() {
+                const remaining = 1000 - this.value.length;
+                helpText.innerHTML = `${this.value.length}/1000 caracteres utilizados`;
+                
+                if (remaining < 100) {
+                    helpText.style.color = '#dc3545';
+                } else {
+                    helpText.style.color = '#6c757d';
+                }
+            });
+
+            // Animação para opções de prioridade
+            const priorityLabels = document.querySelectorAll('.priority-label');
+            priorityLabels.forEach(label => {
+                label.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+
+                label.addEventListener('mouseleave', function() {
+                    if (!this.previousElementSibling.checked) {
+                        this.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

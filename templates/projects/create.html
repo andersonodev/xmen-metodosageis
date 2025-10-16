@@ -1,0 +1,550 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if project %}Editar Projeto{% else %}Novo Projeto{% endif %} - Sistema Ágil{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .page-title {
+        color: var(--text-primary);
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: var(--primary);
+    }
+
+    .page-subtitle {
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: var(--primary);
+        font-size: 1rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    .member-selector {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        background: var(--bg-primary);
+        margin-bottom: 1rem;
+    }
+
+    .member-search {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .member-search input {
+        padding-left: 2.5rem;
+    }
+
+    .member-search i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-inactive);
+    }
+
+    .available-members {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--bg-secondary);
+    }
+
+    .member-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .member-item:hover {
+        background: var(--bg-primary);
+    }
+
+    .member-item:last-child {
+        border-bottom: none;
+    }
+
+    .member-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .member-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .member-details h4 {
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .member-details p {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    .selected-members {
+        margin-top: 1rem;
+    }
+
+    .selected-member {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--primary);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        margin: 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .selected-member button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 0.25rem;
+    }
+
+    .priority-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .priority-option {
+        padding: 1rem;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .priority-option:hover {
+        border-color: var(--primary);
+    }
+
+    .priority-option.selected {
+        border-color: var(--primary);
+        background: rgba(255, 107, 0, 0.1);
+    }
+
+    .priority-option i {
+        display: block;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .priority-low i { color: #22c55e; }
+    .priority-medium i { color: #f59e0b; }
+    .priority-high i { color: #ef4444; }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-secondary {
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-secondary);
+        border-color: var(--primary);
+        color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+        .form-container {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .priority-selector {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-project-diagram"></i>
+            {% if project %}Editar Projeto{% else %}Novo Projeto{% endif %}
+        </h1>
+        <p class="page-subtitle">
+            {% if project %}
+                Atualize as informações do projeto
+            {% else %}
+                Crie um novo projeto para organizar suas tarefas e colaborar com sua equipe
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="post" id="projectForm">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Informações Básicas
+            </h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_name" class="form-label">Nome do Projeto *</label>
+                    <input type="text" 
+                           id="id_name" 
+                           name="name" 
+                           class="form-input" 
+                           value="{{ form.name.value|default:'' }}"
+                           placeholder="Ex: Sistema de Vendas"
+                           required>
+                    {% if form.name.errors %}
+                        <div class="form-error">{{ form.name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_status" class="form-label">Status</label>
+                    <select id="id_status" name="status" class="form-select">
+                        <option value="active" {% if form.status.value == 'active' %}selected{% endif %}>Ativo</option>
+                        <option value="completed" {% if form.status.value == 'completed' %}selected{% endif %}>Concluído</option>
+                        <option value="on_hold" {% if form.status.value == 'on_hold' %}selected{% endif %}>Pausado</option>
+                        <option value="cancelled" {% if form.status.value == 'cancelled' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="id_description" class="form-label">Descrição</label>
+                <textarea id="id_description" 
+                          name="description" 
+                          class="form-input form-textarea" 
+                          placeholder="Descreva o objetivo e escopo do projeto...">{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                    <div class="form-error">{{ form.description.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Project Dates -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-calendar"></i>
+                Cronograma
+            </h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_start_date" class="form-label">Data de Início</label>
+                    <input type="date" 
+                           id="id_start_date" 
+                           name="start_date" 
+                           class="form-input" 
+                           value="{{ form.start_date.value|date:'Y-m-d'|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="id_end_date" class="form-label">Data de Conclusão</label>
+                    <input type="date" 
+                           id="id_end_date" 
+                           name="end_date" 
+                           class="form-input" 
+                           value="{{ form.end_date.value|date:'Y-m-d'|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Selection -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Prioridade
+            </h2>
+            
+            <div class="priority-selector">
+                <label class="priority-option priority-low {% if form.priority.value == '1' %}selected{% endif %}">
+                    <input type="radio" name="priority" value="1" style="display: none;" {% if form.priority.value == '1' %}checked{% endif %}>
+                    <i class="fas fa-arrow-down"></i>
+                    <div>Baixa</div>
+                </label>
+                
+                <label class="priority-option priority-medium {% if form.priority.value == '2' or not form.priority.value %}selected{% endif %}">
+                    <input type="radio" name="priority" value="2" style="display: none;" {% if form.priority.value == '2' or not form.priority.value %}checked{% endif %}>
+                    <i class="fas fa-minus"></i>
+                    <div>Normal</div>
+                </label>
+                
+                <label class="priority-option priority-high {% if form.priority.value == '3' %}selected{% endif %}">
+                    <input type="radio" name="priority" value="3" style="display: none;" {% if form.priority.value == '3' %}checked{% endif %}>
+                    <i class="fas fa-arrow-up"></i>
+                    <div>Alta</div>
+                </label>
+                
+                <label class="priority-option priority-high {% if form.priority.value == '4' %}selected{% endif %}">
+                    <input type="radio" name="priority" value="4" style="display: none;" {% if form.priority.value == '4' %}checked{% endif %}>
+                    <i class="fas fa-fire"></i>
+                    <div>Crítica</div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Team Members -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-users"></i>
+                Membros da Equipe
+            </h2>
+            
+            <div class="member-selector">
+                <div class="member-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="memberSearch" placeholder="Buscar membros..." class="form-input">
+                </div>
+                
+                <div class="available-members" id="availableMembers">
+                    <!-- Membros serão carregados dinamicamente -->
+                </div>
+                
+                <div class="selected-members" id="selectedMembers">
+                    <input type="hidden" name="team_members" id="teamMembersInput">
+                    <!-- Membros selecionados aparecerão aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{% url 'projects:list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                {% if project %}Atualizar Projeto{% else %}Criar Projeto{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Priority selection
+        const priorityOptions = document.querySelectorAll('.priority-option');
+        priorityOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                priorityOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+
+        // Member selection (mock data)
+        const mockMembers = [
+            { id: 1, name: 'João Silva', role: 'Desenvolvedor', avatar: 'JS' },
+            { id: 2, name: 'Maria Santos', role: 'Designer', avatar: 'MS' },
+            { id: 3, name: 'Pedro Costa', role: 'Analista', avatar: 'PC' },
+            { id: 4, name: 'Ana Oliveira', role: 'QA', avatar: 'AO' },
+            { id: 5, name: 'Carlos Ferreira', role: 'DevOps', avatar: 'CF' }
+        ];
+
+        const selectedMembers = new Set();
+        const availableMembersContainer = document.getElementById('availableMembers');
+        const selectedMembersContainer = document.getElementById('selectedMembers');
+        const teamMembersInput = document.getElementById('teamMembersInput');
+        const memberSearch = document.getElementById('memberSearch');
+
+        function renderAvailableMembers(members = mockMembers) {
+            availableMembersContainer.innerHTML = '';
+            members.forEach(member => {
+                if (!selectedMembers.has(member.id)) {
+                    const memberElement = document.createElement('div');
+                    memberElement.className = 'member-item';
+                    memberElement.innerHTML = `
+                        <div class="member-info">
+                            <div class="member-avatar">${member.avatar}</div>
+                            <div class="member-details">
+                                <h4>${member.name}</h4>
+                                <p>${member.role}</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addMember(${member.id})">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    `;
+                    availableMembersContainer.appendChild(memberElement);
+                }
+            });
+        }
+
+        function renderSelectedMembers() {
+            const selectedContainer = selectedMembersContainer;
+            selectedContainer.innerHTML = '<input type="hidden" name="team_members" id="teamMembersInput">';
+            
+            selectedMembers.forEach(memberId => {
+                const member = mockMembers.find(m => m.id === memberId);
+                if (member) {
+                    const memberElement = document.createElement('span');
+                    memberElement.className = 'selected-member';
+                    memberElement.innerHTML = `
+                        ${member.name}
+                        <button type="button" onclick="removeMember(${member.id})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    selectedContainer.appendChild(memberElement);
+                }
+            });
+
+            // Update hidden input
+            document.getElementById('teamMembersInput').value = Array.from(selectedMembers).join(',');
+        }
+
+        window.addMember = function(memberId) {
+            selectedMembers.add(memberId);
+            renderAvailableMembers();
+            renderSelectedMembers();
+        };
+
+        window.removeMember = function(memberId) {
+            selectedMembers.delete(memberId);
+            renderAvailableMembers();
+            renderSelectedMembers();
+        };
+
+        // Search functionality
+        memberSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredMembers = mockMembers.filter(member =>
+                member.name.toLowerCase().includes(searchTerm) ||
+                member.role.toLowerCase().includes(searchTerm)
+            );
+            renderAvailableMembers(filteredMembers);
+        });
+
+        // Initial render
+        renderAvailableMembers();
+        renderSelectedMembers();
+
+        // Form validation
+        const form = document.getElementById('projectForm');
+        form.addEventListener('submit', function(e) {
+            const name = document.getElementById('id_name').value.trim();
+            
+            if (!name) {
+                e.preventDefault();
+                alert('O nome do projeto é obrigatório!');
+                return;
+            }
+
+            // Add loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        });
+    });
+</script>
+{% endblock %}

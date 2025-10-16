@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Integrações - Sistema Ágil{% endblock %}
+
+{% block page_title %}Integrações{% endblock %}
+
+{% block extra_css %}
+<style>
+    .integrations-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .integrations-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .integrations-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .add-integration-btn {
+        padding: 0.75rem 1.5rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .add-integration-btn:hover {
+        background: var(--hover);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number.active {
+        color: var(--success);
+    }
+
+    .stat-number.inactive {
+        color: var(--error);
+    }
+
+    .stat-number.total {
+        color: var(--primary);
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .integrations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .integration-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .integration-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .integration-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .integration-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .integration-icon.github {
+        background: #333;
+    }
+
+    .integration-icon.slack {
+        background: #4A154B;
+    }
+
+    .integration-icon.jira {
+        background: #0052CC;
+    }
+
+    .integration-icon.trello {
+        background: #0079BF;
+    }
+
+    .integration-icon.azure {
+        background: #0078D4;
+    }
+
+    .integration-icon.aws {
+        background: #FF9900;
+    }
+
+    .integration-icon.default {
+        background: var(--primary);
+    }
+
+    .integration-info {
+        flex: 1;
+    }
+
+    .integration-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+        font-size: 1.125rem;
+    }
+
+    .integration-description {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    .integration-status {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .integration-status.active {
+        background: rgba(22, 163, 74, 0.2);
+        color: var(--success);
+        border: 1px solid var(--success);
+    }
+
+    .integration-status.inactive {
+        background: rgba(220, 38, 38, 0.2);
+        color: var(--error);
+        border: 1px solid var(--error);
+    }
+
+    .integration-status.pending {
+        background: rgba(234, 179, 8, 0.2);
+        color: var(--warning);
+        border: 1px solid var(--warning);
+    }
+
+    .integration-details {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .integration-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        text-align: center;
+    }
+
+    .meta-label {
+        font-size: 0.75rem;
+        color: var(--text-inactive);
+        margin-bottom: 0.25rem;
+    }
+
+    .meta-value {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .integration-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .action-btn.primary {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .action-btn.primary:hover {
+        background: var(--hover);
+    }
+
+    .action-btn.secondary {
+        background: var(--bg-highlight);
+        color: var(--text-secondary);
+    }
+
+    .action-btn.secondary:hover {
+        background: var(--hover-bg);
+        color: var(--primary);
+    }
+
+    .action-btn.danger {
+        background: var(--error);
+        color: white;
+        border-color: var(--error);
+    }
+
+    .action-btn.danger:hover {
+        background: #B91C1C;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-inactive);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: var(--primary);
+    }
+
+    .empty-state h3 {
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .popular-integrations {
+        margin-top: 3rem;
+    }
+
+    .popular-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+    }
+
+    .popular-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .popular-card {
+        background: var(--bg-highlight);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .popular-card:hover {
+        border-color: var(--primary);
+        background: var(--bg-secondary);
+    }
+
+    .popular-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        margin: 0 auto 0.75rem;
+    }
+
+    .popular-name {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .popular-desc {
+        font-size: 0.75rem;
+        color: var(--text-inactive);
+    }
+
+    @media (max-width: 768px) {
+        .integrations-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .integrations-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .integration-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .integration-actions {
+            justify-content: stretch;
+        }
+
+        .action-btn {
+            flex: 1;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="integrations-container">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number total">{{ total_integrations }}</div>
+            <div class="stat-label">Total de Integrações</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number active">{{ active_integrations }}</div>
+            <div class="stat-label">Ativas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number inactive">{{ inactive_integrations }}</div>
+            <div class="stat-label">Inativas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ this_month_count }}</div>
+            <div class="stat-label">Este Mês</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="integrations-header">
+        <h1 class="integrations-title">
+            <i class="fas fa-plug"></i>
+            Suas Integrações
+        </h1>
+        <button class="add-integration-btn" onclick="showAddIntegrationModal()">
+            <i class="fas fa-plus"></i>
+            Nova Integração
+        </button>
+    </div>
+
+    <!-- Integrations Grid -->
+    {% if integrations %}
+        <div class="integrations-grid">
+            {% for integration in integrations %}
+            <div class="integration-card">
+                <div class="integration-status {{ integration.status }}">
+                    {% if integration.status == 'active' %}
+                        <i class="fas fa-check-circle"></i> Ativa
+                    {% elif integration.status == 'inactive' %}
+                        <i class="fas fa-times-circle"></i> Inativa
+                    {% else %}
+                        <i class="fas fa-clock"></i> Pendente
+                    {% endif %}
+                </div>
+
+                <div class="integration-header">
+                    <div class="integration-icon {{ integration.platform|lower|default:'default' }}">
+                        {% if integration.platform == 'GitHub' %}
+                            <i class="fab fa-github"></i>
+                        {% elif integration.platform == 'Slack' %}
+                            <i class="fab fa-slack"></i>
+                        {% elif integration.platform == 'Jira' %}
+                            <i class="fab fa-jira"></i>
+                        {% elif integration.platform == 'Trello' %}
+                            <i class="fab fa-trello"></i>
+                        {% elif integration.platform == 'Azure' %}
+                            <i class="fab fa-microsoft"></i>
+                        {% elif integration.platform == 'AWS' %}
+                            <i class="fab fa-aws"></i>
+                        {% else %}
+                            <i class="fas fa-plug"></i>
+                        {% endif %}
+                    </div>
+                    <div class="integration-info">
+                        <h3 class="integration-name">{{ integration.name }}</h3>
+                        <p class="integration-description">{{ integration.description|truncatechars:80 }}</p>
+                    </div>
+                </div>
+
+                <div class="integration-details">
+                    <div class="integration-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">Plataforma</div>
+                            <div class="meta-value">{{ integration.platform }}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Última Sincronização</div>
+                            <div class="meta-value">
+                                {% if integration.last_sync %}
+                                    {{ integration.last_sync|timesince }} atrás
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="integration-actions">
+                        <a href="{% url 'integrations:detail' integration.id %}" class="action-btn secondary">
+                            <i class="fas fa-eye"></i> Detalhes
+                        </a>
+                        {% if integration.status == 'active' %}
+                            <button class="action-btn secondary" onclick="toggleIntegration({{ integration.id }}, 'disable')">
+                                <i class="fas fa-pause"></i> Pausar
+                            </button>
+                        {% else %}
+                            <button class="action-btn primary" onclick="toggleIntegration({{ integration.id }}, 'enable')">
+                                <i class="fas fa-play"></i> Ativar
+                            </button>
+                        {% endif %}
+                        <button class="action-btn danger" onclick="deleteIntegration({{ integration.id }})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-plug"></i>
+            <h3>Nenhuma integração configurada</h3>
+            <p>Comece conectando suas ferramentas favoritas para automatizar seu fluxo de trabalho.</p>
+        </div>
+    {% endif %}
+
+    <!-- Popular Integrations -->
+    <div class="popular-integrations">
+        <h2 class="popular-title">Integrações Populares</h2>
+        <div class="popular-grid">
+            <div class="popular-card" onclick="addIntegration('GitHub')">
+                <div class="popular-icon github">
+                    <i class="fab fa-github"></i>
+                </div>
+                <div class="popular-name">GitHub</div>
+                <div class="popular-desc">Sincronize repositórios e issues</div>
+            </div>
+
+            <div class="popular-card" onclick="addIntegration('Slack')">
+                <div class="popular-icon slack">
+                    <i class="fab fa-slack"></i>
+                </div>
+                <div class="popular-name">Slack</div>
+                <div class="popular-desc">Notificações em tempo real</div>
+            </div>
+
+            <div class="popular-card" onclick="addIntegration('Jira')">
+                <div class="popular-icon jira">
+                    <i class="fab fa-jira"></i>
+                </div>
+                <div class="popular-name">Jira</div>
+                <div class="popular-desc">Sincronizar tickets e projetos</div>
+            </div>
+
+            <div class="popular-card" onclick="addIntegration('Trello')">
+                <div class="popular-icon trello">
+                    <i class="fab fa-trello"></i>
+                </div>
+                <div class="popular-name">Trello</div>
+                <div class="popular-desc">Importar boards e cartões</div>
+            </div>
+
+            <div class="popular-card" onclick="addIntegration('Azure')">
+                <div class="popular-icon azure">
+                    <i class="fab fa-microsoft"></i>
+                </div>
+                <div class="popular-name">Azure DevOps</div>
+                <div class="popular-desc">Pipelines e work items</div>
+            </div>
+
+            <div class="popular-card" onclick="addIntegration('AWS')">
+                <div class="popular-icon aws">
+                    <i class="fab fa-aws"></i>
+                </div>
+                <div class="popular-name">AWS</div>
+                <div class="popular-desc">Monitoramento de recursos</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleIntegration(integrationId, action) {
+    const actionText = action === 'enable' ? 'ativar' : 'pausar';
+    
+    if (!confirm(`Deseja ${actionText} esta integração?`)) {
+        return;
+    }
+
+    fetch(`/integrations/${integrationId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: action })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro ao ' + actionText + ' integração: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling integration:', error);
+        alert('Erro ao ' + actionText + ' integração');
+    });
+}
+
+function deleteIntegration(integrationId) {
+    if (!confirm('Deseja realmente excluir esta integração? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+
+    fetch(`/integrations/${integrationId}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro ao excluir integração: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting integration:', error);
+        alert('Erro ao excluir integração');
+    });
+}
+
+function addIntegration(platform) {
+    // Redirect to add integration page with platform pre-selected
+    window.location.href = `/integrations/add/?platform=${platform}`;
+}
+
+function showAddIntegrationModal() {
+    // For now, just show the popular integrations section
+    document.querySelector('.popular-integrations').scrollIntoView({ 
+        behavior: 'smooth' 
+    });
+}
+
+// Add CSRF token to all requests
+{% csrf_token %}
+</script>
+{% endblock %}

@@ -1,0 +1,2556 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Teams - Sistema Ágil{% endblock %}
+
+{% block page_title %}Teams{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        color: var(--text-primary);
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: var(--primary);
+    }
+
+    .teams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .team-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .team-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(255, 107, 0, 0.15);
+        border-color: var(--primary);
+    }
+
+    .team-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .team-info h3 {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .team-info p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .team-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-active {
+        background: rgba(40, 167, 69, 0.2);
+        color: var(--success);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .badge-inactive {
+        background: rgba(220, 53, 69, 0.2);
+        color: var(--error);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .team-stats {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        flex: 1;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .team-members {
+        margin: 1rem 0;
+    }
+
+    .members-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .members-avatars {
+        display: flex;
+        gap: -8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .member-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 2px solid var(--bg-secondary);
+        margin-left: -8px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .member-avatar:first-child {
+        margin-left: 0;
+    }
+
+    .member-avatar:hover {
+        transform: scale(1.1);
+        z-index: 10;
+        box-shadow: 0 4px 16px rgba(255, 107, 0, 0.3);
+    }
+
+    .member-avatar.leader {
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #333;
+        border-color: #ffd700;
+    }
+
+    .member-avatar.add-member {
+        background: var(--bg-highlight);
+        color: var(--text-secondary);
+        border: 2px dashed var(--border);
+    }
+
+    .member-tooltip {
+        position: absolute;
+        bottom: 120%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+        border: 1px solid var(--border);
+    }
+
+    .member-avatar:hover .member-tooltip {
+        opacity: 1;
+    }
+
+    .team-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        text-decoration: none;
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    .action-btn:hover {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+    }
+
+    .action-btn.primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .action-btn.primary:hover {
+        background: #e55a00;
+        border-color: #e55a00;
+    }
+
+    .action-btn.secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+    }
+
+    .action-btn.danger {
+        background: rgba(220, 53, 69, 0.1);
+        border-color: rgba(220, 53, 69, 0.3);
+        color: var(--error);
+    }
+
+    .action-btn.danger:hover {
+        background: var(--error);
+        border-color: var(--error);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+        grid-column: 1 / -1;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--text-inactive);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .filters-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .filters {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-btn.active,
+    .filter-btn:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .search-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 300px;
+    }
+
+    .search-box input {
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        width: 100%;
+        font-size: 0.9rem;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-inactive);
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        max-width: 800px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideInUp 0.3s ease;
+        position: relative;
+    }
+
+    .modal-header {
+        padding: 2rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .modal-close:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-highlight);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    }
+
+    .form-control.textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    /* User Selection */
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 1rem;
+        background: var(--bg-highlight);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .user-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .user-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 107, 0, 0.15);
+    }
+
+    .user-card.selected {
+        border-color: var(--primary);
+        background: rgba(255, 107, 0, 0.1);
+    }
+
+    .user-avatar-large {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0 auto 0.75rem;
+        box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+    }
+
+    .user-info h4 {
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .user-info p {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    .user-role {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: var(--primary);
+        color: white;
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .selected-members {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: var(--bg-highlight);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .selected-members h4 {
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        margin: 0 0 0.75rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .selected-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .selected-member {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .selected-member .remove {
+        cursor: pointer;
+        color: var(--error);
+        font-weight: bold;
+        margin-left: 0.5rem;
+    }
+
+    .selected-member .remove:hover {
+        background: var(--error);
+        color: white;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+    }
+
+    .role-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .role-option {
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-highlight);
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+    }
+
+    .role-option:hover,
+    .role-option.selected {
+        border-color: var(--primary);
+        background: rgba(255, 107, 0, 0.1);
+        color: var(--primary);
+    }
+
+    /* Statistics Dashboard */
+    .stats-dashboard {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stats-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--bg-primary);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 107, 0, 0.1);
+        border-color: var(--primary);
+    }
+
+    .stat-card-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .teams-grid {
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        }
+
+        .users-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filters-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-controls {
+            flex-direction: column;
+        }
+
+        .search-box {
+            min-width: auto;
+        }
+
+        .teams-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filters {
+            justify-content: center;
+        }
+
+        .modal-content {
+            width: 95%;
+            margin: 1rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .role-selector {
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+    }
+
+    @media (max-width: 480px) {
+        .members-avatars {
+            gap: 0;
+        }
+
+        .member-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+            margin-left: -4px;
+        }
+
+        .users-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+
+        .user-avatar-large {
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+        }
+    }
+
+    /* Team Details Modal Styles */
+    .details-content {
+        max-height: 75vh;
+        overflow-y: auto;
+        padding: 0.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) transparent;
+    }
+
+    .details-content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .details-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .details-content::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+
+    .details-section {
+        margin-bottom: 1.5rem;
+        padding: 1.75rem;
+        background: linear-gradient(135deg, var(--card-background) 0%, rgba(255,255,255,0.05) 100%);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .details-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        border-radius: 12px 12px 0 0;
+    }
+
+    .details-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        border-color: var(--primary-color);
+    }
+
+    .details-section h3 {
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid rgba(255,124,46,0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .details-section h3 i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        padding: 8px;
+        background: rgba(255,124,46,0.1);
+        border-radius: 8px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+        background: rgba(255,255,255,0.03);
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .info-item:hover {
+        background: rgba(255,124,46,0.05);
+        border-color: rgba(255,124,46,0.3);
+    }
+
+    .info-item label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-item label::before {
+        content: "▸";
+        color: var(--primary-color);
+        font-weight: bold;
+    }
+
+    .info-item span {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 500;
+        padding: 0.25rem 0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--background-color) 0%, rgba(255,124,46,0.05) 100%);
+        border-radius: 12px;
+        border: 2px solid rgba(255,124,46,0.2);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .stat-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(255,124,46,0.2);
+        border-color: var(--primary-color);
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .members-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .detail-member-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, var(--background-color) 0%, rgba(255,255,255,0.02) 100%);
+        border-radius: 12px;
+        border: 2px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .detail-member-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .detail-member-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        border-color: rgba(255,124,46,0.4);
+        background: linear-gradient(135deg, rgba(255,124,46,0.05) 0%, rgba(255,255,255,0.05) 100%);
+    }
+
+    .detail-member-avatar {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(255,124,46,0.3);
+        border: 3px solid rgba(255,255,255,0.2);
+    }
+
+    .detail-member-info h4 {
+        margin: 0 0 0.25rem 0;
+        color: var(--text-primary);
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+
+    .detail-member-info p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .projects-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .detail-project-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, var(--background-color) 0%, rgba(255,255,255,0.02) 100%);
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .detail-project-item:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        border-color: rgba(255,124,46,0.3);
+    }
+
+    .detail-project-info h4 {
+        margin: 0 0 0.25rem 0;
+        color: var(--text-primary);
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+
+    .detail-project-info p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .detail-project-status {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .detail-project-status.active {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .detail-project-status.completed {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .detail-project-status.paused {
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(249, 115, 22, 0.05));
+        color: #f97316;
+        border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    /* Modal Animations */
+    #teamDetailsModal.show .modal-content {
+        animation: slideInFromRight 0.4s ease-out;
+    }
+
+    @keyframes slideInFromRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Loading States */
+    .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    .loading::before {
+        content: '';
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255,124,46,0.3);
+        border-top: 2px solid var(--primary-color);
+        border-radius: 50%;
+        margin-right: 0.75rem;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: rgba(255,124,46,0.3);
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    /* Enhanced Button Styles */
+    .btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255,124,46,0.4);
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    }
+
+    .btn-secondary {
+        background: rgba(108, 117, 125, 0.1);
+        color: var(--text-secondary);
+        border: 2px solid rgba(108, 117, 125, 0.2);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(108, 117, 125, 0.2);
+        color: var(--text-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        border: 2px solid transparent;
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        background: linear-gradient(135deg, #c82333, #dc3545);
+    }
+
+    /* Action Button Enhancements */
+    .action-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn.primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        box-shadow: 0 3px 10px rgba(255,124,46,0.3);
+    }
+
+    .action-btn.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255,124,46,0.4);
+    }
+
+    .action-btn.secondary {
+        background: rgba(108, 117, 125, 0.1);
+        color: var(--text-secondary);
+        border: 1px solid rgba(108, 117, 125, 0.2);
+    }
+
+    .action-btn.secondary:hover {
+        background: rgba(108, 117, 125, 0.2);
+        color: var(--text-primary);
+        transform: translateY(-1px);
+    }
+
+    .action-btn.danger {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
+    }
+
+    .action-btn.danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    }
+
+    /* Modal Footer Buttons */
+    .modal-footer .btn {
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    /* Page Header Button */
+    .page-header .btn {
+        font-size: 0.95rem;
+        padding: 0.8rem 1.75rem;
+    }
+
+    .page-header .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        box-shadow: 0 4px 16px rgba(255,124,46,0.3);
+    }
+
+    .page-header .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255,124,46,0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-users"></i>
+        Times
+    </h1>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar times...">
+        </div>
+        <button class="btn btn-primary" onclick="openCreateTeamModal()">
+            <i class="fas fa-plus"></i>
+            Novo Time
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Dashboard -->
+<div class="stats-dashboard">
+    <h2 class="stats-title">
+        <i class="fas fa-chart-bar"></i>
+        Estatísticas Gerais
+    </h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-card-number">{{ teams.count }}</div>
+            <div class="stat-card-label">Total de Times</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-number">{{ total_members|default:"0" }}</div>
+            <div class="stat-card-label">Membros Ativos</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-number">{{ active_projects|default:"0" }}</div>
+            <div class="stat-card-label">Projetos Ativos</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-number">87%</div>
+            <div class="stat-card-label">Taxa de Sucesso</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Controls -->
+<div class="filters-section">
+    <div class="filters">
+        <button class="filter-btn active" data-filter="all">
+            <i class="fas fa-list"></i>
+            Todos os Times
+        </button>
+        <button class="filter-btn" data-filter="my-teams">
+            <i class="fas fa-user"></i>
+            Meus Times
+        </button>
+        <button class="filter-btn" data-filter="leading">
+            <i class="fas fa-crown"></i>
+            Liderando
+        </button>
+        <button class="filter-btn" data-filter="active">
+            <i class="fas fa-check-circle"></i>
+            Ativos
+        </button>
+        <button class="filter-btn" data-filter="recent">
+            <i class="fas fa-clock"></i>
+            Recentes
+        </button>
+    </div>
+    <div class="search-controls">
+        <select class="form-control" id="sortBy" style="width: auto;">
+            <option value="name">Ordenar por Nome</option>
+            <option value="created">Mais Recentes</option>
+            <option value="members">Mais Membros</option>
+            <option value="activity">Mais Ativos</option>
+        </select>
+    </div>
+</div>
+
+<!-- Teams Grid -->
+<div class="teams-grid" id="teamsGrid">
+    {% for team in teams %}
+    <div class="team-card" data-team-id="{{ team.id }}" data-team-name="{{ team.name|lower }}" data-team-members="{{ team.member_count }}">
+        <div class="team-header">
+            <div class="team-info">
+                <h3>{{ team.name }}</h3>
+                <p>{{ team.description|default:"Sem descrição disponível" }}</p>
+            </div>
+            <div class="team-badge {% if team.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                {% if team.is_active %}Ativo{% else %}Inativo{% endif %}
+            </div>
+        </div>
+
+        <div class="team-stats">
+            <div class="stat-item">
+                <div class="stat-number">{{ team.member_count }}</div>
+                <div class="stat-label">Membros</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ team.project_count|default:"0" }}</div>
+                <div class="stat-label">Projetos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">85%</div>
+                <div class="stat-label">Produtividade</div>
+            </div>
+        </div>
+
+        <div class="team-members">
+            <div class="members-label">
+                <i class="fas fa-users"></i>
+                Membros da Equipe ({{ team.member_count }}/{{ team.max_members }})
+            </div>
+            <div class="members-avatars">
+                {% for membership in team.memberships.all|slice:":6" %}
+                {% if membership.is_active %}
+                <div class="member-avatar {% if membership.is_lead %}leader{% endif %}" 
+                     title="{{ membership.user.get_full_name|default:membership.user.username }} - {{ membership.get_role_display }}">
+                    {{ membership.user.first_name.0|default:membership.user.username.0 }}{{ membership.user.last_name.0|default:"" }}
+                    <div class="member-tooltip">
+                        <strong>{{ membership.user.get_full_name|default:membership.user.username }}</strong><br>
+                        {{ membership.get_role_display }}
+                        {% if membership.is_lead %}<br><i class="fas fa-crown"></i> Líder{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% empty %}
+                <div class="member-avatar add-member" onclick="openAddMemberModal({{ team.id }})" title="Adicionar primeiro membro">
+                    <i class="fas fa-user-plus"></i>
+                    <div class="member-tooltip">Adicionar primeiro membro</div>
+                </div>
+                {% endfor %}
+                
+                {% if team.member_count > 6 %}
+                <div class="member-avatar" title="Mais {{ team.member_count|add:"-6" }} membros">
+                    +{{ team.member_count|add:"-6" }}
+                    <div class="member-tooltip">Ver todos os {{ team.member_count }} membros</div>
+                </div>
+                {% elif team.member_count > 0 and team.member_count < team.max_members %}
+                <div class="member-avatar add-member" onclick="openAddMemberModal({{ team.id }})" title="Adicionar membro">
+                    <i class="fas fa-user-plus"></i>
+                    <div class="member-tooltip">Adicionar membro</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="team-actions">
+            <button class="action-btn primary" onclick="openTeamDetailsModal({{ team.id }})">
+                <i class="fas fa-eye"></i>
+                Ver Detalhes
+            </button>
+            <button class="action-btn secondary" onclick="openEditTeamModal({{ team.id }})">
+                <i class="fas fa-edit"></i>
+                Editar
+            </button>
+            <button class="action-btn" onclick="openAddMemberModal({{ team.id }})">
+                <i class="fas fa-user-plus"></i>
+                Membros
+            </button>
+            {% if team.created_by == request.user %}
+            <button class="action-btn danger" onclick="deleteTeam({{ team.id }})">
+                <i class="fas fa-trash"></i>
+                Excluir
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-users"></i>
+        <h3>Nenhum time encontrado</h3>
+        <p>Comece criando seu primeiro time para organizar sua equipe e gerenciar projetos colaborativos.</p>
+        <button class="btn btn-primary" onclick="openCreateTeamModal()" style="margin-top: 1rem;">
+            <i class="fas fa-plus"></i>
+            Criar Primeiro Time
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Create Team Modal -->
+<div id="createTeamModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fas fa-plus"></i>
+                Criar Novo Time
+            </h2>
+            <button class="modal-close" onclick="closeCreateTeamModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="createTeamForm">
+                <div class="form-group">
+                    <label class="form-label">Nome do Time</label>
+                    <input type="text" class="form-control" id="teamName" placeholder="Ex: X-Men Squad" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <textarea class="form-control textarea" id="teamDescription" rows="3" 
+                              placeholder="Descreva o objetivo e foco do time..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Máximo de Membros</label>
+                        <input type="number" class="form-control" id="teamMaxMembers" value="8" min="2" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="teamStatus">
+                            <option value="true">Ativo</option>
+                            <option value="false">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Selecionar Membros Iniciais</label>
+                    <div class="users-grid" id="usersGrid">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="selected-members" id="selectedMembersSection" style="display: none;">
+                    <h4>
+                        <i class="fas fa-users"></i>
+                        Membros Selecionados (<span id="selectedCount">0</span>)
+                    </h4>
+                    <div class="selected-list" id="selectedList">
+                        <!-- Selected members will appear here -->
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeCreateTeamModal()">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" onclick="createTeam()">
+                <i class="fas fa-plus"></i>
+                Criar Time
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Member Modal -->
+<div id="addMemberModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fas fa-user-plus"></i>
+                Adicionar Membros ao Time
+            </h2>
+            <button class="modal-close" onclick="closeAddMemberModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Buscar Usuários</label>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="userSearchInput" placeholder="Digite o nome do usuário...">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Usuários Disponíveis</label>
+                <div class="users-grid" id="availableUsersGrid">
+                    <!-- Available users will be loaded here -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Papel Padrão</label>
+                <div class="role-selector">
+                    <div class="role-option" data-role="developer">
+                        <i class="fas fa-code"></i><br>
+                        Desenvolvedor
+                    </div>
+                    <div class="role-option" data-role="designer">
+                        <i class="fas fa-paint-brush"></i><br>
+                        Designer
+                    </div>
+                    <div class="role-option" data-role="qa">
+                        <i class="fas fa-bug"></i><br>
+                        QA/Tester
+                    </div>
+                    <div class="role-option" data-role="analyst">
+                        <i class="fas fa-chart-line"></i><br>
+                        Analista
+                    </div>
+                    <div class="role-option" data-role="product_owner">
+                        <i class="fas fa-bullseye"></i><br>
+                        Product Owner
+                    </div>
+                    <div class="role-option" data-role="scrum_master">
+                        <i class="fas fa-users-cog"></i><br>
+                        Scrum Master
+                    </div>
+                    <div class="role-option" data-role="devops">
+                        <i class="fas fa-server"></i><br>
+                        DevOps
+                    </div>
+                    <div class="role-option" data-role="other">
+                        <i class="fas fa-user"></i><br>
+                        Outro
+                    </div>
+                </div>
+            </div>
+
+            <div class="selected-members" id="addMemberSelectedSection" style="display: none;">
+                <h4>
+                    <i class="fas fa-users"></i>
+                    Membros para Adicionar (<span id="addMemberSelectedCount">0</span>)
+                </h4>
+                <div class="selected-list" id="addMemberSelectedList">
+                    <!-- Selected members will appear here -->
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddMemberModal()">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" onclick="addMembersToTeam()">
+                <i class="fas fa-user-plus"></i>
+                Adicionar Membros
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Team Modal -->
+<div id="editTeamModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fas fa-edit"></i>
+                Editar Time
+            </h2>
+            <button class="modal-close" onclick="closeEditTeamModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editTeamForm">
+                <input type="hidden" id="editTeamId">
+                <div class="form-group">
+                    <label class="form-label">Nome do Time</label>
+                    <input type="text" class="form-control" id="editTeamName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <textarea class="form-control textarea" id="editTeamDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Máximo de Membros</label>
+                        <input type="number" class="form-control" id="editTeamMaxMembers" min="2" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="editTeamStatus">
+                            <option value="true">Ativo</option>
+                            <option value="false">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditTeamModal()">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" onclick="updateTeam()">
+                <i class="fas fa-save"></i>
+                Salvar Alterações
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Team Details Modal -->
+<div id="teamDetailsModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fas fa-users"></i>
+                <span id="detailsTeamName">Detalhes do Time</span>
+            </h2>
+            <button class="modal-close" onclick="closeTeamDetailsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="details-content">
+                <!-- Informações básicas do time -->
+                <div class="details-section">
+                    <h3><i class="fas fa-info-circle"></i> Informações Gerais</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Nome:</label>
+                            <span id="detailsName">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Descrição:</label>
+                            <span id="detailsDescription">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Líder:</label>
+                            <span id="detailsLeader">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Criado em:</label>
+                            <span id="detailsCreatedAt">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Membros:</label>
+                            <span id="detailsMembersCount">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Máximo de Membros:</label>
+                            <span id="detailsMaxMembers">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estatísticas do time -->
+                <div class="details-section">
+                    <h3><i class="fas fa-chart-bar"></i> Estatísticas</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="detailsActiveProjects">0</div>
+                            <div class="stat-label">Projetos Ativos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="detailsCompletedTasks">0</div>
+                            <div class="stat-label">Tarefas Concluídas</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="detailsSuccessRate">0%</div>
+                            <div class="stat-label">Taxa de Sucesso</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Membros do time -->
+                <div class="details-section">
+                    <h3><i class="fas fa-users"></i> Membros do Time</h3>
+                    <div id="detailsMembersList" class="members-grid">
+                        <!-- Membros serão carregados via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Projetos do time -->
+                <div class="details-section">
+                    <h3><i class="fas fa-project-diagram"></i> Projetos</h3>
+                    <div id="detailsProjectsList" class="projects-list">
+                        <!-- Projetos serão carregados via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeTeamDetailsModal()">
+                Fechar
+            </button>
+            <button class="btn btn-primary" onclick="openEditTeamModal(currentTeamDetailsId)">
+                <i class="fas fa-edit"></i>
+                Editar Time
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global variables
+    let selectedUsers = [];
+    let currentTeamId = null;
+    let allUsers = [];
+    let defaultRole = 'developer';
+
+    // Função auxiliar para templates Django
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeEventListeners();
+        loadUsers();
+        animateStatistics();
+    });
+
+    function initializeEventListeners() {
+        const searchInput = document.getElementById('searchInput');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const sortBy = document.getElementById('sortBy');
+        const userSearchInput = document.getElementById('userSearchInput');
+
+        // Search functionality
+        searchInput.addEventListener('input', filterTeams);
+        if (userSearchInput) {
+            userSearchInput.addEventListener('input', filterUsers);
+        }
+
+        // Filter functionality
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                filterTeams();
+            });
+        });
+
+        // Sort functionality
+        sortBy.addEventListener('change', sortTeams);
+
+        // Role selector
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                defaultRole = this.getAttribute('data-role');
+            });
+        });
+
+        // Set default role
+        document.querySelector('.role-option[data-role="developer"]').classList.add('selected');
+
+        // Modal close events
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAllModals();
+            }
+        });
+
+        // Click outside modal to close
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAllModals();
+                }
+            });
+        });
+    }
+
+    function loadUsers() {
+        fetch('/accounts/api/users/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Garantir que temos um array de usuários
+            allUsers = Array.isArray(data) ? data : (data.results || []);
+            console.log('Usuários carregados:', allUsers);
+            renderUsers();
+        })
+        .catch(error => {
+            console.error('Erro ao carregar usuários:', error);
+            showNotification('Erro ao carregar usuários: ' + error.message, 'error');
+        });
+    }
+
+    function renderUsers(container = 'usersGrid', users = allUsers) {
+        const usersGrid = document.getElementById(container);
+        if (!usersGrid) return;
+
+        usersGrid.innerHTML = '';
+
+        // Verificar se users é um array
+        if (!Array.isArray(users)) {
+            console.error('renderUsers: users não é um array:', users);
+            showNotification('Erro: dados de usuários inválidos', 'error');
+            return;
+        }
+
+        users.forEach(user => {
+            const userCard = document.createElement('div');
+            userCard.className = 'user-card';
+            userCard.setAttribute('data-user-id', user.id);
+            userCard.onclick = () => toggleUserSelection(user, userCard);
+
+            const initials = getInitials(user);
+            const fullName = user.first_name && user.last_name 
+                ? `${user.first_name} ${user.last_name}` 
+                : user.username;
+
+            userCard.innerHTML = `
+                <div class="user-role">${user.role === 'leader' ? 'Líder' : 'Colaborador'}</div>
+                <div class="user-avatar-large">
+                    ${initials}
+                </div>
+                <div class="user-info">
+                    <h4>${fullName}</h4>
+                    <p>${user.position || 'Sem cargo definido'}</p>
+                    <p style="font-size: 0.75rem; color: var(--text-inactive);">
+                        ${user.department || 'Sem departamento'}
+                    </p>
+                </div>
+            `;
+
+            usersGrid.appendChild(userCard);
+        });
+    }
+
+    function getInitials(user) {
+        if (user.first_name && user.last_name) {
+            return `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase();
+        }
+        return user.username.charAt(0).toUpperCase();
+    }
+
+    function toggleUserSelection(user, userCard) {
+        const index = selectedUsers.findIndex(u => u.id === user.id);
+        
+        if (index > -1) {
+            selectedUsers.splice(index, 1);
+            userCard.classList.remove('selected');
+        } else {
+            selectedUsers.push({...user, role: defaultRole});
+            userCard.classList.add('selected');
+        }
+        
+        updateSelectedMembersDisplay();
+    }
+
+    function updateSelectedMembersDisplay() {
+        const section = document.getElementById('selectedMembersSection');
+        const addSection = document.getElementById('addMemberSelectedSection');
+        const count = document.getElementById('selectedCount');
+        const addCount = document.getElementById('addMemberSelectedCount');
+        const list = document.getElementById('selectedList');
+        const addList = document.getElementById('addMemberSelectedList');
+
+        // Update counts
+        if (count) count.textContent = selectedUsers.length;
+        if (addCount) addCount.textContent = selectedUsers.length;
+
+        // Show/hide sections
+        if (section) section.style.display = selectedUsers.length > 0 ? 'block' : 'none';
+        if (addSection) addSection.style.display = selectedUsers.length > 0 ? 'block' : 'none';
+
+        // Update lists
+        const lists = [list, addList].filter(l => l);
+        lists.forEach(currentList => {
+            currentList.innerHTML = '';
+            
+            selectedUsers.forEach(user => {
+                const memberElement = document.createElement('div');
+                memberElement.className = 'selected-member';
+                
+                const fullName = user.first_name && user.last_name 
+                    ? `${user.first_name} ${user.last_name}` 
+                    : user.username;
+                
+                memberElement.innerHTML = `
+                    <div class="member-avatar" style="width: 24px; height: 24px; font-size: 0.75rem;">
+                        ${getInitials(user)}
+                    </div>
+                    <span>${fullName}</span>
+                    <span style="color: var(--text-secondary); font-size: 0.8rem;">(${getRoleDisplay(user.role)})</span>
+                    <span class="remove" onclick="removeSelectedUser(${user.id})">&times;</span>
+                `;
+                
+                currentList.appendChild(memberElement);
+            });
+        });
+    }
+
+    function removeSelectedUser(userId) {
+        selectedUsers = selectedUsers.filter(u => u.id !== userId);
+        
+        // Update UI
+        const userCard = document.querySelector(`[data-user-id="${userId}"]`);
+        if (userCard) {
+            userCard.classList.remove('selected');
+        }
+        
+        updateSelectedMembersDisplay();
+    }
+
+    function getRoleDisplay(role) {
+        const roles = {
+            'product_owner': 'Product Owner',
+            'scrum_master': 'Scrum Master',
+            'developer': 'Desenvolvedor',
+            'designer': 'Designer',
+            'qa': 'QA/Tester',
+            'devops': 'DevOps',
+            'analyst': 'Analista',
+            'other': 'Outro'
+        };
+        return roles[role] || role;
+    }
+
+    function filterUsers() {
+        const searchTerm = document.getElementById('userSearchInput').value.toLowerCase();
+        const filteredUsers = allUsers.filter(user => {
+            const fullName = user.first_name && user.last_name 
+                ? `${user.first_name} ${user.last_name}`.toLowerCase() 
+                : user.username.toLowerCase();
+            
+            return fullName.includes(searchTerm) || 
+                   (user.position && user.position.toLowerCase().includes(searchTerm)) ||
+                   (user.department && user.department.toLowerCase().includes(searchTerm));
+        });
+        
+        renderUsers('availableUsersGrid', filteredUsers);
+    }
+
+    function filterTeams() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+        const teamCards = document.querySelectorAll('.team-card');
+
+        teamCards.forEach(card => {
+            const teamName = card.getAttribute('data-team-name') || '';
+            const teamId = card.getAttribute('data-team-id');
+            
+            // Search filter
+            const matchesSearch = teamName.includes(searchTerm);
+            
+            // Category filter
+            let matchesFilter = true;
+            if (activeFilter === 'my-teams') {
+                // Check if user is member of this team
+                matchesFilter = card.querySelector('.member-avatar[title*="' + '{{ request.user.get_full_name|default:request.user.username }}' + '"]') !== null;
+            } else if (activeFilter === 'leading') {
+                // Check if user is leader of this team
+                matchesFilter = card.querySelector('.member-avatar.leader[title*="' + '{{ request.user.get_full_name|default:request.user.username }}' + '"]') !== null;
+            } else if (activeFilter === 'active') {
+                matchesFilter = card.querySelector('.badge-active') !== null;
+            } else if (activeFilter === 'recent') {
+                // For demo purposes, show all (in real app, filter by creation date)
+                matchesFilter = true;
+            }
+            
+            card.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
+        });
+    }
+
+    function sortTeams() {
+        const sortBy = document.getElementById('sortBy').value;
+        const teamsGrid = document.getElementById('teamsGrid');
+        const teamCards = Array.from(teamsGrid.querySelectorAll('.team-card'));
+
+        teamCards.sort((a, b) => {
+            switch (sortBy) {
+                case 'name':
+                    return a.getAttribute('data-team-name').localeCompare(b.getAttribute('data-team-name'));
+                case 'members':
+                    const aMembersCount = parseInt(a.getAttribute('data-team-members')) || 0;
+                    const bMembersCount = parseInt(b.getAttribute('data-team-members')) || 0;
+                    return bMembersCount - aMembersCount;
+                case 'created':
+                case 'activity':
+                default:
+                    return 0; // Keep original order for demo
+            }
+        });
+
+        // Re-append sorted cards
+        teamCards.forEach(card => teamsGrid.appendChild(card));
+    }
+
+    function animateStatistics() {
+        const statNumbers = document.querySelectorAll('.stat-card-number');
+        statNumbers.forEach(stat => {
+            const finalValue = parseInt(stat.textContent.replace('%', ''));
+            if (!isNaN(finalValue) && finalValue > 0) {
+                let currentValue = 0;
+                const increment = finalValue / 30;
+                const hasPercent = stat.textContent.includes('%');
+                
+                const timer = setInterval(() => {
+                    currentValue += increment;
+                    if (currentValue >= finalValue) {
+                        stat.textContent = finalValue + (hasPercent ? '%' : '');
+                        clearInterval(timer);
+                    } else {
+                        stat.textContent = Math.floor(currentValue) + (hasPercent ? '%' : '');
+                    }
+                }, 30);
+            }
+        });
+    }
+
+    // Modal functions
+    function openCreateTeamModal() {
+        selectedUsers = [];
+        updateSelectedMembersDisplay();
+        renderUsers();
+        document.getElementById('createTeamModal').classList.add('show');
+    }
+
+    function closeCreateTeamModal() {
+        document.getElementById('createTeamModal').classList.remove('show');
+        document.getElementById('createTeamForm').reset();
+        selectedUsers = [];
+    }
+
+    function openAddMemberModal(teamId) {
+        currentTeamId = teamId;
+        selectedUsers = [];
+        updateSelectedMembersDisplay();
+        loadAvailableUsers(teamId);
+        document.getElementById('addMemberModal').classList.add('show');
+    }
+
+    function closeAddMemberModal() {
+        document.getElementById('addMemberModal').classList.remove('show');
+        currentTeamId = null;
+        selectedUsers = [];
+    }
+
+    function openEditTeamModal(teamId) {
+        currentTeamId = teamId;
+        loadTeamData(teamId);
+        document.getElementById('editTeamModal').classList.add('show');
+    }
+
+    function closeEditTeamModal() {
+        document.getElementById('editTeamModal').classList.remove('show');
+        currentTeamId = null;
+    }
+
+    function closeAllModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.classList.remove('show');
+        });
+        selectedUsers = [];
+        currentTeamId = null;
+    }
+
+    function loadAvailableUsers(teamId) {
+        fetch(`/teams/api/teams/${teamId}/available_users/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            renderUsers('availableUsersGrid', data.available_users || allUsers);
+        })
+        .catch(error => {
+            console.error('Erro ao carregar usuários disponíveis:', error);
+            renderUsers('availableUsersGrid', allUsers);
+        });
+    }
+
+    function loadTeamData(teamId) {
+        fetch(`/teams/api/teams/${teamId}/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(team => {
+            document.getElementById('editTeamId').value = team.id;
+            document.getElementById('editTeamName').value = team.name;
+            document.getElementById('editTeamDescription').value = team.description || '';
+            document.getElementById('editTeamMaxMembers').value = team.max_members || 8;
+            document.getElementById('editTeamStatus').value = team.is_active ? 'true' : 'false';
+        })
+        .catch(error => {
+            console.error('Erro ao carregar dados do time:', error);
+            showNotification('Erro ao carregar dados do time: ' + error.message, 'error');
+        });
+    }
+
+    // CRUD operations
+    function createTeam() {
+        const teamData = {
+            name: document.getElementById('teamName').value,
+            description: document.getElementById('teamDescription').value,
+            max_members: parseInt(document.getElementById('teamMaxMembers').value),
+            is_active: document.getElementById('teamStatus').value === 'true',
+            members: selectedUsers.map(user => ({
+                user_id: user.id,
+                role: user.role
+            }))
+        };
+
+        if (!teamData.name.trim()) {
+            showNotification('Nome do time é obrigatório', 'error');
+            return;
+        }
+
+        showLoading();
+
+        fetch('/teams/api/teams/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(teamData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            hideLoading();
+            if (data.id) {
+                showNotification('Time criado com sucesso!', 'success');
+                closeCreateTeamModal();
+                location.reload();
+            } else {
+                showNotification('Erro ao criar time: ' + (data.message || 'Erro desconhecido'), 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Erro ao criar time:', error);
+            showNotification('Erro ao criar time: ' + error.message, 'error');
+        });
+    }
+
+    function updateTeam() {
+        const teamId = document.getElementById('editTeamId').value;
+        const teamData = {
+            name: document.getElementById('editTeamName').value,
+            description: document.getElementById('editTeamDescription').value,
+            max_members: parseInt(document.getElementById('editTeamMaxMembers').value),
+            is_active: document.getElementById('editTeamStatus').value === 'true'
+        };
+
+        if (!teamData.name.trim()) {
+            showNotification('Nome do time é obrigatório', 'error');
+            return;
+        }
+
+        showLoading();
+
+        fetch(`/teams/api/teams/${teamId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(teamData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.id) {
+                showNotification('Time atualizado com sucesso!', 'success');
+                closeEditTeamModal();
+                location.reload();
+            } else {
+                showNotification('Erro ao atualizar time: ' + (data.message || 'Erro desconhecido'), 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Erro ao atualizar time:', error);
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    function addMembersToTeam() {
+        if (!currentTeamId || selectedUsers.length === 0) {
+            showNotification('Selecione pelo menos um usuário', 'error');
+            return;
+        }
+
+        showLoading();
+
+        const promises = selectedUsers.map(user => {
+            return fetch(`/teams/api/teams/${currentTeamId}/add_member/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    user_id: user.id,
+                    role: user.role
+                })
+            });
+        });
+
+        Promise.all(promises)
+        .then(responses => {
+            hideLoading();
+            const successful = responses.filter(r => r.ok).length;
+            if (successful > 0) {
+                showNotification(`${successful} membro(s) adicionado(s) com sucesso!`, 'success');
+                closeAddMemberModal();
+                location.reload();
+            } else {
+                showNotification('Erro ao adicionar membros', 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Erro ao adicionar membros:', error);
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    function deleteTeam(teamId) {
+        if (!confirm('Tem certeza que deseja excluir este time? Esta ação não pode ser desfeita.')) {
+            return;
+        }
+
+        showLoading();
+
+        fetch(`/teams/api/teams/${teamId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => {
+            hideLoading();
+            if (response.ok) {
+                showNotification('Time excluído com sucesso!', 'success');
+                location.reload();
+            } else {
+                showNotification('Erro ao excluir time', 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Erro ao excluir time:', error);
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    // Utility functions
+    function showLoading() {
+        // Add loading overlay if needed
+        console.log('Loading...');
+    }
+
+    function hideLoading() {
+        // Remove loading overlay if needed
+        console.log('Loading finished');
+    }
+
+    function showNotification(message, type = 'info') {
+        // Create a simple notification
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        `;
+        
+        // Set background color based on type
+        const colors = {
+            success: '#28a745',
+            error: '#dc3545',
+            warning: '#ffc107',
+            info: '#17a2b8'
+        };
+        notification.style.backgroundColor = colors[type] || colors.info;
+        
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+    }
+
+    // Team Details Modal functions
+    let currentTeamDetailsId = null;
+
+    function openTeamDetailsModal(teamId) {
+        currentTeamDetailsId = teamId;
+        showLoading();
+        
+        // Buscar detalhes do time via API
+        fetch(`/teams/api/teams/${teamId}/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(team => {
+            populateTeamDetails(team);
+            document.getElementById('teamDetailsModal').classList.add('show');
+            hideLoading();
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Erro ao carregar detalhes do time:', error);
+            showNotification('Erro ao carregar detalhes do time: ' + error.message, 'error');
+        });
+    }
+
+    function closeTeamDetailsModal() {
+        document.getElementById('teamDetailsModal').classList.remove('show');
+        currentTeamDetailsId = null;
+    }
+
+    function populateTeamDetails(team) {
+        // Preencher informações básicas
+        document.getElementById('detailsTeamName').textContent = team.name;
+        document.getElementById('detailsName').textContent = team.name;
+        document.getElementById('detailsDescription').textContent = team.description || 'Sem descrição';
+        document.getElementById('detailsLeader').textContent = team.created_by_name || 'N/A';
+        document.getElementById('detailsCreatedAt').textContent = formatDate(team.created_at);
+        document.getElementById('detailsMembersCount').textContent = `${team.member_count || 0}`;
+        document.getElementById('detailsMaxMembers').textContent = team.max_members || 'Ilimitado';
+
+        // Preencher estatísticas (dados mock por enquanto)
+        document.getElementById('detailsActiveProjects').textContent = '0';
+        document.getElementById('detailsCompletedTasks').textContent = '0';
+        document.getElementById('detailsSuccessRate').textContent = '100%';
+
+        // Carregar membros do time
+        loadTeamMembers(team.id);
+        
+        // Carregar projetos do time
+        loadTeamProjects(team.id);
+    }
+
+    function loadTeamMembers(teamId) {
+        const membersList = document.getElementById('detailsMembersList');
+        membersList.innerHTML = '<div class="loading">Carregando membros...</div>';
+
+        fetch(`/teams/api/teams/${teamId}/members/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(members => {
+            membersList.innerHTML = '';
+            
+            if (members && members.length > 0) {
+                members.forEach(member => {
+                    const memberCard = document.createElement('div');
+                    memberCard.className = 'detail-member-card';
+                    
+                    const fullName = member.user.first_name && member.user.last_name 
+                        ? `${member.user.first_name} ${member.user.last_name}` 
+                        : member.user.username;
+                    
+                    const initials = getInitials(member.user);
+                    
+                    memberCard.innerHTML = `
+                        <div class="detail-member-avatar">${initials}</div>
+                        <div class="detail-member-info">
+                            <h4>${fullName}</h4>
+                            <p>${getRoleName(member.role)} • ${member.user.department || 'Sem departamento'}</p>
+                        </div>
+                    `;
+                    
+                    membersList.appendChild(memberCard);
+                });
+            } else {
+                membersList.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Nenhum membro no time ainda.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar membros:', error);
+            membersList.innerHTML = '<p style="text-align: center; color: var(--error-color);">Erro ao carregar membros.</p>';
+        });
+    }
+
+    function loadTeamProjects(teamId) {
+        const projectsList = document.getElementById('detailsProjectsList');
+        projectsList.innerHTML = '<div class="loading">Carregando projetos...</div>';
+
+        // Por enquanto, simular dados de projetos
+        setTimeout(() => {
+            projectsList.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Nenhum projeto encontrado para este time.</p>';
+        }, 1000);
+    }
+
+    function getRoleName(role) {
+        const roleNames = {
+            'product_owner': 'Product Owner',
+            'scrum_master': 'Scrum Master',
+            'developer': 'Desenvolvedor',
+            'designer': 'Designer',
+            'tester': 'Tester'
+        };
+        return roleNames[role] || 'Membro';
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+</script>
+{% endblock %}

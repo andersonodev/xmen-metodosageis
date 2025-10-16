@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ team.name }} - Agile Intelligence</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #121212 0%, #2c2c2c 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #FF6B00;
+        }
+
+        .team-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #e0e0e0;
+        }
+
+        .meta-item i {
+            color: #FF6B00;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B00 0%, #F97316 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid #FF6B00;
+        }
+
+        .btn-secondary:hover {
+            background: #FF6B00;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #121212;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: #FF6B00;
+        }
+
+        .description {
+            color: #6c757d;
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #dee2e6;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .members-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .member-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .member-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-color: #FF6B00;
+        }
+
+        .member-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B00 0%, #F97316 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .member-info h4 {
+            font-weight: 600;
+            color: #121212;
+            margin-bottom: 0.2rem;
+        }
+
+        .member-role {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: capitalize;
+        }
+
+        .role-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .role-leader {
+            background: #FFE6CC;
+            color: #FF6B00;
+        }
+
+        .role-member {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #FF6B00;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-tab.active,
+        .nav-tab:hover {
+            color: #FF6B00;
+            border-bottom-color: #FF6B00;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                margin: 1rem auto;
+                padding: 0 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .team-info h1 {
+                font-size: 2rem;
+            }
+
+            .team-meta {
+                justify-content: center;
+            }
+
+            .actions {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="team-info">
+                <h1>{{ team.name }}</h1>
+                <p class="description">{{ team.description|default:"Sem descrição disponível." }}</p>
+                <div class="team-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-users"></i>
+                        <span>{{ team.members.count }} membros</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Criado em {{ team.created_at|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-user-crown"></i>
+                        <span>Líder: {{ team.created_by.get_full_name|default:team.created_by.username }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="actions">
+                <a href="{% url 'teams:edit' team.pk %}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i>
+                    Editar Time
+                </a>
+                <a href="{% url 'teams:list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <!-- Estatísticas -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Estatísticas do Time
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ team.members.count }}</div>
+                        <div class="stat-label">Membros Ativos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Projetos Ativos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Tarefas Concluídas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Taxa de Sucesso</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Atividades e Projetos -->
+            <div class="section">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" onclick="switchTab('projects')">
+                        <i class="fas fa-project-diagram"></i>
+                        Projetos
+                    </button>
+                    <button class="nav-tab" onclick="switchTab('activity')">
+                        <i class="fas fa-history"></i>
+                        Atividade Recente
+                    </button>
+                </div>
+
+                <div id="projects-content" class="tab-content active">
+                    <div class="empty-state">
+                        <i class="fas fa-project-diagram"></i>
+                        <h3>Nenhum projeto encontrado</h3>
+                        <p>Este time ainda não possui projetos atribuídos.</p>
+                    </div>
+                </div>
+
+                <div id="activity-content" class="tab-content">
+                    <div class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <h3>Nenhuma atividade recente</h3>
+                        <p>Não há atividades recentes para exibir.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <!-- Membros do Time -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-users"></i>
+                    Membros do Time
+                </div>
+                <div class="members-grid">
+                    {% for membership in team.members.all %}
+                        <div class="member-card">
+                            <div class="member-avatar">
+                                {{ membership.user.first_name|first|default:membership.user.username|first|upper }}
+                            </div>
+                            <div class="member-info">
+                                <h4>{{ membership.user.get_full_name|default:membership.user.username }}</h4>
+                                <div class="member-role">
+                                    <span class="role-badge role-{{ membership.role }}">
+                                        {{ membership.get_role_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-user-plus"></i>
+                            <p>Nenhum membro no time ainda.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Ações Rápidas -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-bolt"></i>
+                    Ações Rápidas
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <a href="#" class="btn btn-primary" style="justify-content: center;">
+                        <i class="fas fa-user-plus"></i>
+                        Adicionar Membro
+                    </a>
+                    <a href="#" class="btn btn-secondary" style="justify-content: center;">
+                        <i class="fas fa-project-diagram"></i>
+                        Criar Projeto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-content').classList.add('active');
+        }
+
+        // Adicionar funcionalidades interativas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animação suave para os cards
+            const cards = document.querySelectorAll('.member-card, .stat-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

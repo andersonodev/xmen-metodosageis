@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Líder - XMen AgileTeam</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <style>
+        .leader-dashboard {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .leader-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #475569;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        }
+        
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+        
+        .section {
+            background: rgba(30, 41, 59, 0.5);
+            margin-bottom: 30px;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #475569;
+        }
+        
+        .section-title {
+            color: white;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .team-card {
+            background: linear-gradient(135deg, #334155 0%, #475569 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #64748b;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(37, 99, 235, 0.2);
+        }
+        
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .team-name {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .team-members-count {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .team-description {
+            color: #94a3b8;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .team-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border: 1px solid #475569;
+        }
+        
+        .btn-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+        }
+        
+        .projects-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .project-card {
+            background: linear-gradient(135deg, #334155 0%, #475569 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #64748b;
+            transition: all 0.3s ease;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        }
+        
+        .project-name {
+            color: white;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .project-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-planning { background: #fbbf24; color: #1f2937; }
+        .status-in-progress { background: #3b82f6; color: white; }
+        .status-completed { background: #10b981; color: white; }
+        .status-on-hold { background: #6b7280; color: white; }
+        
+        .project-team {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        .create-team-section {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px dashed #475569;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .create-team-btn {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+        }
+        
+        .create-team-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(37, 99, 235, 0.4);
+        }
+        
+        .ai-section {
+            background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .ai-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+        
+        .form-input {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .quick-actions {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 12px 35px rgba(37, 99, 235, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .teams-grid, .projects-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .ai-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>XMen AgileTeam</h1>
+                <span class="nav-subtitle">Dashboard do Líder</span>
+            </div>
+            <div class="nav-user">
+                <span>👑 Líder: {{ user.get_full_name|default:user.username }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="leader-dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>🚀 Painel de Liderança</h1>
+                <p>Gerencie suas equipes e projetos com eficiência</p>
+            </div>
+
+            <!-- Estatísticas do Líder -->
+            <div class="leader-stats">
+                <div class="stat-card">
+                    <div class="stat-number">{{ leader_stats.teams_count }}</div>
+                    <div class="stat-label">Times Liderados</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-number">{{ leader_stats.projects_count }}</div>
+                    <div class="stat-label">Projetos Ativos</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-number">{{ leader_stats.total_members }}</div>
+                    <div class="stat-label">Membros Totais</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-number">{{ leader_stats.active_projects }}</div>
+                    <div class="stat-label">Em Andamento</div>
+                </div>
+            </div>
+
+            <!-- IA para Criação de Equipes -->
+            <div class="ai-section">
+                <h2>🤖 Criação Inteligente de Equipes</h2>
+                <p>Use a IA para sugerir a melhor composição de equipe baseada em skills e disponibilidade</p>
+                
+                <div class="ai-form">
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Projeto</label>
+                        <select id="project-type" class="form-input">
+                            <option value="web-development">Desenvolvimento Web</option>
+                            <option value="mobile-app">Aplicativo Mobile</option>
+                            <option value="data-science">Ciência de Dados</option>
+                            <option value="devops">DevOps/Infraestrutura</option>
+                            <option value="ui-ux">UI/UX Design</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Tamanho da Equipe</label>
+                        <select id="team-size" class="form-input">
+                            <option value="3">3 membros</option>
+                            <option value="4">4 membros</option>
+                            <option value="5" selected>5 membros</option>
+                            <option value="6">6 membros</option>
+                            <option value="7">7 membros</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Skills Prioritárias</label>
+                        <input type="text" id="required-skills" class="form-input" 
+                               placeholder="React, Python, AWS..." 
+                               title="Separe as skills por vírgula">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button onclick="generateTeamWithAI()" class="create-team-btn">
+                            🎯 Gerar Equipe com IA
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Times do Líder -->
+            <div class="section">
+                <h2 class="section-title">👥 Meus Times</h2>
+                
+                {% if my_teams %}
+                <div class="teams-grid">
+                    {% for team in my_teams %}
+                    <div class="team-card">
+                        <div class="team-header">
+                            <div class="team-name">{{ team.name }}</div>
+                            <div class="team-members-count">{{ team.members_count }} membros</div>
+                        </div>
+                        
+                        <div class="team-description">
+                            {{ team.description|default:"Time de desenvolvimento ágil" }}
+                        </div>
+                        
+                        <div class="team-actions">
+                            <a href="{% url 'teams:detail' team.id %}" class="btn-small btn-primary">
+                                👁️ Ver Detalhes
+                            </a>
+                            <a href="{% url 'teams:edit' team.id %}" class="btn-small btn-secondary">
+                                ✏️ Editar
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="create-team-section">
+                    <h3>🎯 Comece criando seu primeiro time!</h3>
+                    <p>Use a IA acima para gerar sugestões inteligentes de equipe</p>
+                    <a href="{% url 'teams:create' %}" class="create-team-btn">
+                        ➕ Criar Primeiro Time
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Projetos Ativos -->
+            <div class="section">
+                <h2 class="section-title">📋 Projetos Ativos</h2>
+                
+                {% if my_projects %}
+                <div class="projects-list">
+                    {% for project in my_projects %}
+                    <div class="project-card">
+                        <div class="project-name">{{ project.name }}</div>
+                        
+                        <div class="project-status status-{{ project.status }}">
+                            {{ project.get_status_display }}
+                        </div>
+                        
+                        <div class="project-team">
+                            Time: {{ project.team.name }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: #94a3b8; text-align: center; padding: 40px;">
+                    📋 Nenhum projeto ativo no momento. Crie um time primeiro!
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Colaboradores Disponíveis -->
+            {% if available_collaborators %}
+            <div class="section">
+                <h2 class="section-title">👨‍💻 Colaboradores Disponíveis</h2>
+                <div class="users-grid">
+                    {% for collaborator in available_collaborators|slice:":8" %}
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            {{ collaborator.first_name.0|default:collaborator.username.0|upper }}
+                        </div>
+                        <div class="user-name">{{ collaborator.get_full_name|default:collaborator.username }}</div>
+                        <div class="user-role">{{ collaborator.teams_count }} time(s)</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="quick-actions">
+            <a href="{% url 'teams:create' %}" class="action-btn" title="Criar Time">➕</a>
+            <a href="{% url 'chat:home' %}" class="action-btn" title="Chat">💬</a>
+            <a href="{% url 'teams:list' %}" class="action-btn" title="Ver Todos os Times">👥</a>
+        </div>
+    </main>
+
+    <script>
+        async function generateTeamWithAI() {
+            const projectType = document.getElementById('project-type').value;
+            const teamSize = document.getElementById('team-size').value;
+            const requiredSkills = document.getElementById('required-skills').value;
+            
+            const button = document.querySelector('.create-team-btn');
+            button.textContent = '🤖 Gerando equipe...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/accounts/create-ai-team/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        project_type: projectType,
+                        team_size: parseInt(teamSize),
+                        required_skills: requiredSkills.split(',').map(s => s.trim()).filter(s => s)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showTeamSuggestion(data.team_suggestion, data.ai_explanation);
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (error) {
+                alert('Erro de conexão: ' + error.message);
+            } finally {
+                button.textContent = '🎯 Gerar Equipe com IA';
+                button.disabled = false;
+            }
+        }
+        
+        function showTeamSuggestion(teamSuggestion, explanation) {
+            // Criar modal com a sugestão
+            const modal = document.createElement('div');
+            modal.className = 'ai-modal';
+            modal.innerHTML = `
+                <div class="ai-modal-content">
+                    <div class="ai-modal-header">
+                        <h3>🤖 Sugestão de Equipe IA</h3>
+                        <button onclick="closeAIModal()" class="close-btn">✕</button>
+                    </div>
+                    
+                    <div class="ai-explanation">
+                        <pre>${explanation}</pre>
+                    </div>
+                    
+                    <div class="suggested-team">
+                        <h4>👥 Equipe Sugerida:</h4>
+                        ${teamSuggestion.map(member => `
+                            <div class="suggested-member">
+                                <div class="member-info">
+                                    <strong>${member.name}</strong>
+                                    <span class="member-role">${member.role}</span>
+                                </div>
+                                <div class="member-skills">
+                                    ${member.skills.map(skill => 
+                                        `<span class="skill-badge">${skill.name} (${skill.level})</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="ai-modal-actions">
+                        <button onclick="acceptAITeam()" class="btn-primary">✅ Aceitar Sugestão</button>
+                        <button onclick="generateTeamWithAI()" class="btn-secondary">🔄 Nova Sugestão</button>
+                        <button onclick="closeAIModal()" class="btn-secondary">❌ Fechar</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Adicionar CSS do modal
+            const style = document.createElement('style');
+            style.textContent = `
+                .ai-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                }
+                .ai-modal-content {
+                    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+                    padding: 30px;
+                    border-radius: 15px;
+                    max-width: 600px;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    color: white;
+                    border: 1px solid #475569;
+                }
+                .ai-modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+                .close-btn {
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                }
+                .ai-explanation {
+                    background: rgba(37, 99, 235, 0.1);
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    font-family: monospace;
+                    font-size: 0.9rem;
+                    white-space: pre-wrap;
+                }
+                .suggested-member {
+                    background: rgba(51, 65, 85, 0.5);
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    border-radius: 8px;
+                }
+                .member-info {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 10px;
+                }
+                .member-role {
+                    color: #94a3b8;
+                    text-transform: capitalize;
+                }
+                .skill-badge {
+                    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+                    padding: 3px 8px;
+                    border-radius: 12px;
+                    font-size: 0.7rem;
+                    margin-right: 5px;
+                    display: inline-block;
+                    margin-bottom: 3px;
+                }
+                .ai-modal-actions {
+                    display: flex;
+                    gap: 10px;
+                    justify-content: center;
+                    margin-top: 20px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        function closeAIModal() {
+            const modal = document.querySelector('.ai-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        function acceptAITeam() {
+            alert('🎉 Funcionalidade em desenvolvimento! Em breve você poderá criar times diretamente da sugestão da IA.');
+            closeAIModal();
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

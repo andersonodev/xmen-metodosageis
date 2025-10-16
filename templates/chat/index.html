@@ -1,0 +1,683 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sistema de Chat - XMen AgileTeam{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        height: calc(100vh - 80px);
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .chat-sidebar {
+        background: var(--bg-highlight);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    }
+
+    .chat-title {
+        color: white;
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chat-subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.875rem;
+        margin: 0.25rem 0 0;
+    }
+
+    .rooms-section {
+        padding: 1rem;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .rooms-section h4 {
+        color: var(--text-inactive);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 0 0.75rem;
+    }
+
+    .room-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem;
+    }
+
+    .room-item {
+        margin-bottom: 0.25rem;
+    }
+
+    .room-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        gap: 0.75rem;
+    }
+
+    .room-link:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    .room-link.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .room-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .room-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .room-name {
+        font-weight: 500;
+        margin-bottom: 0.125rem;
+    }
+
+    .room-description {
+        font-size: 0.75rem;
+        color: var(--text-inactive);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .chat-main {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-primary);
+    }
+
+    .current-room-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-secondary);
+    }
+
+    .current-room-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .current-room-description {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0.25rem 0 0;
+    }
+
+    .messages-container {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .message {
+        display: flex;
+        gap: 0.75rem;
+        max-width: 70%;
+    }
+
+    .message.own {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .message-content {
+        flex: 1;
+    }
+
+    .message-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .message-sender {
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        color: var(--text-inactive);
+    }
+
+    .message-text {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        border-top-left-radius: 4px;
+        line-height: 1.4;
+    }
+
+    .message.own .message-text {
+        background: var(--primary);
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 4px;
+    }
+
+    .message-input-container {
+        padding: 1.5rem;
+        border-top: 1px solid var(--border);
+        background: var(--bg-secondary);
+    }
+
+    .message-input-form {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+    }
+
+    .message-input {
+        flex: 1;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        resize: none;
+        min-height: 44px;
+        max-height: 120px;
+        transition: border-color 0.2s ease;
+    }
+
+    .message-input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .message-input::placeholder {
+        color: var(--text-inactive);
+    }
+
+    .send-button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .send-button:hover {
+        background: var(--hover);
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        color: var(--text-inactive);
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 0.5rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    .chat-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 0.5rem;
+        background: var(--bg-primary);
+        border-radius: 8px;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-inactive);
+        margin-top: 0.25rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .chat-container {
+            grid-template-columns: 1fr;
+            height: calc(100vh - 60px);
+        }
+        
+        .chat-sidebar {
+            display: none;
+        }
+        
+        .message {
+            max-width: 85%;
+        }
+    }
+
+    /* Loading animation */
+    .typing-indicator {
+        display: flex;
+        gap: 0.25rem;
+        padding: 0.75rem 1rem;
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        border-top-left-radius: 4px;
+        align-items: center;
+    }
+
+    .typing-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--text-inactive);
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.5;
+        }
+        30% {
+            transform: translateY(-10px);
+            opacity: 1;
+        }
+    }
+    </style>
+{% endblock %}
+
+{% block page_title %}💬 Sistema de Chat{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-sidebar">
+        <div class="chat-header">
+            <h2 class="chat-title">
+                <i class="fas fa-comments"></i>
+                Chat do Time
+            </h2>
+            <p class="chat-subtitle">Converse com seus colegas em salas organizadas por contexto</p>
+        </div>
+
+        <div class="chat-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ rooms|length }}</span>
+                <div class="stat-label">Salas Disponíveis</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">0</span>
+                <div class="stat-label">Membros Online</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">0</span>
+                <div class="stat-label">Mensagens Hoje</div>
+            </div>
+        </div>
+
+        <div class="rooms-section">
+            <h4>Salas Gerais</h4>
+            <ul class="room-list">
+                {% for room in rooms %}
+                    {% if room.room_type == 'general' %}
+                    <li class="room-item">
+                        <a href="{% url 'chat:room' room.id %}" 
+                           class="room-link {% if current_room.id == room.id %}active{% endif %}">
+                            <div class="room-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="room-info">
+                                <div class="room-name">{{ room.name }}</div>
+                                <div class="room-description">{{ room.description|default:"Geral" }}</div>
+                            </div>
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+
+            <h4>Times</h4>
+            <ul class="room-list">
+                {% for room in rooms %}
+                    {% if room.room_type == 'team' %}
+                    <li class="room-item">
+                        <a href="{% url 'chat:room' room.id %}" 
+                           class="room-link {% if current_room.id == room.id %}active{% endif %}">
+                            <div class="room-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="room-info">
+                                <div class="room-name">{{ room.name }}</div>
+                                <div class="room-description">{{ room.description|default:"Time" }}</div>
+                            </div>
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+
+            <h4>Projetos</h4>
+            <ul class="room-list">
+                {% for room in rooms %}
+                    {% if room.room_type == 'project' %}
+                    <li class="room-item">
+                        <a href="{% url 'chat:room' room.id %}" 
+                           class="room-link {% if current_room.id == room.id %}active{% endif %}">
+                            <div class="room-icon">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="room-info">
+                                <div class="room-name">{{ room.name }}</div>
+                                <div class="room-description">{{ room.description|default:"Projeto" }}</div>
+                            </div>
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="chat-main">
+        {% if current_room %}
+        <div class="current-room-header">
+            <h3 class="current-room-title">
+                {% if current_room.room_type == 'general' %}
+                    <i class="fas fa-comments"></i>
+                {% elif current_room.room_type == 'team' %}
+                    <i class="fas fa-users"></i>
+                {% elif current_room.room_type == 'project' %}
+                    <i class="fas fa-project-diagram"></i>
+                {% else %}
+                    <i class="fas fa-comment"></i>
+                {% endif %}
+                {{ current_room.name }}
+            </h3>
+            <p class="current-room-description">{{ current_room.description }}</p>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="message {% if message.sender.id == user.id %}own{% endif %}">
+                    <div class="message-avatar">
+                        {{ message.sender.first_name.0|default:message.sender.username.0|upper }}
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-sender">{{ message.sender.get_full_name|default:message.sender.username }}</span>
+                            <span class="message-time">{{ message.created_at|time:"H:i" }}</span>
+                        </div>
+                        <div class="message-text">{{ message.content }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-comment-slash"></i>
+                <h3>Nenhuma mensagem ainda</h3>
+                <p>Seja o primeiro a enviar uma mensagem nesta sala!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="message-input-container">
+            <form class="message-input-form" onsubmit="sendMessage(event)">
+                <textarea 
+                    class="message-input" 
+                    id="messageInput"
+                    placeholder="Digite sua mensagem... (Enter para enviar, Shift+Enter para nova linha)"
+                    rows="1"
+                ></textarea>
+                <button type="submit" class="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                    Enviar
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div class="empty-state" style="flex: 1;">
+            <i class="fas fa-comments"></i>
+            <h3>Selecione uma sala de chat</h3>
+            <p>Escolha uma sala da lista ao lado para começar a conversar</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Auto-expand textarea
+    document.getElementById('messageInput').addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Handle Enter key
+    document.getElementById('messageInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(e);
+        }
+    });
+
+    // Send message function
+    async function sendMessage(event) {
+        event.preventDefault();
+        
+        const input = document.getElementById('messageInput');
+        const content = input.value.trim();
+        
+        if (!content) return;
+        
+        const roomId = {{ current_room.id|default:'null' }};
+        if (!roomId) return;
+        
+        try {
+            const response = await fetch('/chat/send-message/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    room_id: roomId,
+                    content: content
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Clear input
+                input.value = '';
+                input.style.height = 'auto';
+                
+                // Add message to UI
+                addMessageToUI(data.message);
+                
+                // Scroll to bottom
+                scrollToBottom();
+            } else {
+                alert('Erro ao enviar mensagem: ' + data.error);
+            }
+        } catch (error) {
+            alert('Erro de conexão: ' + error.message);
+        }
+    }
+
+    function addMessageToUI(messageData) {
+        const container = document.getElementById('messagesContainer');
+        
+        // Remove empty state if exists
+        const emptyState = container.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+        
+        // Create message element
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${messageData.is_own ? 'own' : ''}`;
+        
+        messageEl.innerHTML = `
+            <div class="message-avatar">${messageData.sender_avatar}</div>
+            <div class="message-content">
+                <div class="message-header">
+                    <span class="message-sender">${messageData.sender_name}</span>
+                    <span class="message-time">${messageData.timestamp}</span>
+                </div>
+                <div class="message-text">${messageData.content}</div>
+            </div>
+        `;
+        
+        container.appendChild(messageEl);
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('messagesContainer');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Auto-scroll to bottom on load
+    document.addEventListener('DOMContentLoaded', function() {
+        scrollToBottom();
+        
+        // Focus on input
+        if (document.getElementById('messageInput')) {
+            document.getElementById('messageInput').focus();
+        }
+    });
+
+    // Simulate real-time updates (for demo)
+    setInterval(async () => {
+        // In a real app, this would use WebSockets
+        // For now, we'll just simulate activity
+    }, 30000);
+
+    // Funções do sidebar - garantir que existam
+    if (typeof toggleSidebar === 'undefined') {
+        window.toggleSidebar = function() {
+            document.querySelector('.sidebar').classList.toggle('mobile-open');
+        };
+    }
+
+    if (typeof toggleSidebarCollapse === 'undefined') {
+        window.toggleSidebarCollapse = function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+        };
+    }
+</script>
+{% endblock %}

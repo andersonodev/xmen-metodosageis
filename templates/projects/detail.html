@@ -1,0 +1,932 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ project.name }} - Projetos - Sistema Ágil{% endblock %}
+
+{% block extra_css %}
+<style>
+    .project-header {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .project-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 107, 0, 0.05);
+        border-radius: 50%;
+        transform: translate(30%, -30%);
+    }
+
+    .project-info {
+        position: relative;
+        z-index: 2;
+    }
+
+    .project-title {
+        color: var(--text-primary);
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .project-title i {
+        color: var(--primary);
+        font-size: 2rem;
+    }
+
+    .project-description {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        max-width: 600px;
+    }
+
+    .project-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .meta-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .meta-icon.status { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+    .meta-icon.priority { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .meta-icon.dates { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .meta-icon.progress { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+
+    .meta-content h3 {
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .meta-content p {
+        color: var(--text-secondary);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .project-actions {
+        position: absolute;
+        top: 2rem;
+        right: 2rem;
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .action-btn:hover {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .content-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        height: fit-content;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: var(--primary);
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Tasks Section */
+    .task-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        background: var(--bg-primary);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .task-item:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .task-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .task-checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .task-checkbox.completed {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .task-details h4 {
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 500;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .task-details.completed h4 {
+        text-decoration: line-through;
+        color: var(--text-secondary);
+    }
+
+    .task-details p {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .task-priority {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .priority-crítica { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .priority-alta { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .priority-normal { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .priority-baixa { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+
+    .task-assignee {
+        margin-top: 0.5rem;
+    }
+
+    .assignee-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .assignee-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .no-assignee {
+        color: var(--text-inactive);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .task-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+
+    .task-due-date {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .task-due-date.overdue {
+        color: #ef4444;
+    }
+
+    /* Team Members */
+    .member-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .member-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .member-item:hover {
+        border-color: var(--primary);
+    }
+
+    .member-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .member-info h4 {
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .member-info p {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .member-status {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #22c55e;
+    }
+
+    /* Progress Chart */
+    .progress-overview {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .progress-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(var(--primary) 0deg 252deg, var(--border) 252deg 360deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        position: relative;
+    }
+
+    .progress-circle::before {
+        content: '';
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+    }
+
+    .progress-text {
+        position: relative;
+        z-index: 2;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .progress-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--bg-primary);
+        border-radius: 8px;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--text-inactive);
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Modal Styles */
+    .modal-content {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-highlight);
+    }
+
+    .modal-title {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .modal-body {
+        background: var(--bg-primary);
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border);
+        background: var(--bg-highlight);
+    }
+
+    .form-group label {
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(255, 107, 0, 0.25);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    .form-control option {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+        .project-title {
+            font-size: 2rem;
+        }
+
+        .project-actions {
+            position: static;
+            margin-top: 2rem;
+            justify-content: center;
+        }
+
+        .project-meta {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Project Header -->
+<div class="project-header">
+    <div class="project-info">
+        <h1 class="project-title">
+            <i class="fas fa-project-diagram"></i>
+            {{ project.name }}
+        </h1>
+        
+        {% if project.description %}
+        <p class="project-description">
+            {{ project.description }}
+        </p>
+        {% endif %}
+
+        <div class="project-meta">
+            <div class="meta-item">
+                <div class="meta-icon status">
+                    <i class="fas fa-flag"></i>
+                </div>
+                <div class="meta-content">
+                    <h3>Status</h3>
+                    <p>{{ project.get_status_display }}</p>
+                </div>
+            </div>
+
+            <div class="meta-item">
+                <div class="meta-icon priority">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="meta-content">
+                    <h3>Prioridade</h3>
+                    <p>{{ project.get_priority_display|default:"Média" }}</p>
+                </div>
+            </div>
+
+            <div class="meta-item">
+                <div class="meta-icon dates">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <div class="meta-content">
+                    <h3>Cronograma</h3>
+                    <p>
+                        {% if project.start_date %}{{ project.start_date|date:"d/m/Y" }}{% else %}Não definido{% endif %}
+                        {% if project.end_date %} - {{ project.end_date|date:"d/m/Y" }}{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="meta-item">
+                <div class="meta-icon progress">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="meta-content">
+                    <h3>Progresso</h3>
+                    <p>70% concluído</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="project-actions">
+        <a href="{% url 'projects:edit' project.id %}" class="action-btn">
+            <i class="fas fa-edit"></i>
+            Editar
+        </a>
+        <a href="#" class="action-btn" onclick="shareProject()">
+            <i class="fas fa-share"></i>
+            Compartilhar
+        </a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="content-grid">
+    <!-- Tasks Section -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-tasks"></i>
+                Tarefas do Projeto
+            </h2>
+            <div class="task-actions">
+                <button class="btn btn-primary btn-sm" onclick="createNewTask()">
+                    <i class="fas fa-plus"></i>
+                    Nova Tarefa
+                </button>
+                <a href="/tasks/project/{{ project.id }}/" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-columns"></i>
+                    Ver Kanban
+                </a>
+            </div>
+        </div>
+
+        <div class="task-list">
+            {% for task in project_tasks %}
+            <div class="task-item" onclick="editTask({{ task.id }})">
+                <div class="task-info">
+                    <div class="task-checkbox {% if task.status == 'done' %}completed{% endif %}" 
+                         onclick="event.stopPropagation(); toggleTask({{ task.id }})">
+                        {% if task.status == 'done' %}
+                            <i class="fas fa-check"></i>
+                        {% endif %}
+                    </div>
+                    <div class="task-details {% if task.status == 'done' %}completed{% endif %}">
+                        <h4>{{ task.title }}</h4>
+                        <div class="task-assignee">
+                            {% if task.assignee %}
+                                <div class="assignee-info">
+                                    <div class="assignee-avatar">
+                                        {{ task.assignee.first_name.0|default:task.assignee.username.0|upper }}
+                                    </div>
+                                    <span>{{ task.assignee.get_full_name|default:task.assignee.username }}</span>
+                                </div>
+                            {% else %}
+                                <span class="no-assignee">
+                                    <i class="fas fa-user-slash"></i>
+                                    Não atribuída
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="task-meta">
+                    <span class="task-priority priority-{{ task.priority|lower }}">
+                        {{ task.get_priority_display }}
+                    </span>
+                    {% if task.due_date %}
+                        <span class="task-due-date {% if task.is_overdue %}overdue{% endif %}">
+                            <i class="fas fa-clock"></i>
+                            {{ task.due_date|date:"d/m" }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-tasks"></i>
+                <h3>Nenhuma tarefa criada</h3>
+                <p>Comece criando a primeira tarefa para este projeto.</p>
+                <a href="{% url 'tasks:create' %}?project={{ project.id }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Criar Primeira Tarefa
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Progress Overview -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-pie"></i>
+                Progresso Geral
+            </h2>
+            
+            <div class="progress-overview">
+                <div class="progress-circle">
+                    <div class="progress-text">70%</div>
+                </div>
+                
+                <div class="progress-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Concluídas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Pendentes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Members -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-users"></i>
+                    Equipe
+                </h2>
+                <button class="btn btn-primary btn-sm" onclick="addMember()">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <div class="member-grid">
+                {% if project.team %}
+                    {% for membership in project.team.memberships.all %}
+                    <div class="member-item">
+                        <div class="member-avatar">
+                            {{ membership.user.first_name.0|default:membership.user.username.0|upper }}{{ membership.user.last_name.0|default:""|upper }}
+                        </div>
+                        <div class="member-info">
+                            <h4>{{ membership.user.get_full_name|default:membership.user.username }}</h4>
+                            <p>{{ membership.get_role_display|default:"Membro" }}</p>
+                        </div>
+                        <div class="member-status">
+                            <div class="status-dot"></div>
+                            Online
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h3>Sem equipe</h3>
+                        <p>Associe uma equipe a este projeto para visualizar os membros.</p>
+                        <button class="btn btn-primary" onclick="assignTeam()">
+                            <i class="fas fa-plus"></i>
+                            Atribuir Equipe
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal para Edição de Tarefa -->
+<div class="modal fade" id="taskEditModal" tabindex="-1" role="dialog" aria-labelledby="taskEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskEditModalLabel">Editar Tarefa</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="taskEditForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="taskTitle">Título da Tarefa</label>
+                                <input type="text" class="form-control" id="taskTitle" name="title" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="taskDescription">Descrição</label>
+                                <textarea class="form-control" id="taskDescription" name="description" rows="3"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="taskAssignee">Responsável</label>
+                                <select class="form-control" id="taskAssignee" name="assignee">
+                                    <option value="">Não atribuída</option>
+                                    {% if project.team %}
+                                        {% for membership in project.team.memberships.all %}
+                                        <option value="{{ membership.user.id }}">
+                                            {{ membership.user.get_full_name|default:membership.user.username }}
+                                        </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="taskPriority">Prioridade</label>
+                                <select class="form-control" id="taskPriority" name="priority">
+                                    <option value="1">Baixa</option>
+                                    <option value="2">Normal</option>
+                                    <option value="3">Alta</option>
+                                    <option value="4">Crítica</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="taskStatus">Status</label>
+                                <select class="form-control" id="taskStatus" name="status">
+                                    <option value="todo">To Do</option>
+                                    <option value="in_progress">Em Progresso</option>
+                                    <option value="review">Em Revisão</option>
+                                    <option value="done">Concluído</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="taskDueDate">Data de Vencimento</label>
+                                <input type="date" class="form-control" id="taskDueDate" name="due_date">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="saveTask()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleTask(taskId) {
+        // Implementar toggle de tarefa
+        console.log('Toggle task:', taskId);
+        
+        // Simular mudança de status
+        const checkbox = event.currentTarget;
+        const taskDetails = checkbox.nextElementSibling;
+        
+        if (checkbox.classList.contains('completed')) {
+            checkbox.classList.remove('completed');
+            checkbox.innerHTML = '';
+            taskDetails.classList.remove('completed');
+        } else {
+            checkbox.classList.add('completed');
+            checkbox.innerHTML = '<i class="fas fa-check"></i>';
+            taskDetails.classList.add('completed');
+        }
+    }
+
+    function shareProject() {
+        if (navigator.share) {
+            navigator.share({
+                title: '{{ project.name }}',
+                text: 'Confira este projeto no Sistema Ágil',
+                url: window.location.href
+            });
+        } else {
+            // Fallback para cópia do link
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Link copiado para a área de transferência!');
+            });
+        }
+    }
+
+    function addMember() {
+        // Implementar adição de membro
+        console.log('Add member to project');
+        alert('Funcionalidade de adicionar membro será implementada em breve!');
+    }
+
+    function editTask(taskId) {
+        // Carregar dados da tarefa e abrir modal
+        fetch(`/tasks/api/tasks/${taskId}/`)
+            .then(response => response.json())
+            .then(task => {
+                // Preencher o formulário
+                document.getElementById('taskTitle').value = task.title || '';
+                document.getElementById('taskDescription').value = task.description || '';
+                document.getElementById('taskAssignee').value = task.assignee || '';
+                document.getElementById('taskPriority').value = task.priority || 2;
+                document.getElementById('taskStatus').value = task.status || 'todo';
+                document.getElementById('taskDueDate').value = task.due_date ? task.due_date.split('T')[0] : '';
+                
+                // Guardar ID da tarefa
+                window.currentTaskId = taskId;
+                
+                // Abrir modal
+                $('#taskEditModal').modal('show');
+            })
+            .catch(error => {
+                console.error('Erro ao carregar tarefa:', error);
+                alert('Erro ao carregar dados da tarefa. Redirecionando para página de edição...');
+                window.location.href = `/tasks/edit/${taskId}/`;
+            });
+    }
+
+    function saveTask() {
+        const taskId = window.currentTaskId;
+        if (!taskId) return;
+        
+        const formData = new FormData(document.getElementById('taskEditForm'));
+        const data = Object.fromEntries(formData.entries());
+        
+        fetch(`/tasks/api/tasks/${taskId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success !== false) {
+                $('#taskEditModal').modal('hide');
+                location.reload(); // Recarregar página para mostrar mudanças
+            } else {
+                alert('Erro ao salvar tarefa: ' + (result.error || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao salvar tarefa:', error);
+            alert('Erro ao salvar tarefa');
+        });
+    }
+
+    function assignTeam() {
+        // Implementar atribuição de equipe
+        if (confirm('Deseja atribuir uma equipe a este projeto?')) {
+            // Redirecionar para página de edição do projeto
+            window.location.href = '{% url "projects:edit" project.id %}';
+        }
+    }
+
+    function createNewTask() {
+        // Redirecionar para criação de nova tarefa do projeto
+        window.location.href = '{% url "tasks:create" %}?project={{ project.id }}';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animação do círculo de progresso
+        const progressCircle = document.querySelector('.progress-circle');
+        const progressText = document.querySelector('.progress-text');
+        
+        if (progressCircle && progressText) {
+            const percentage = parseInt(progressText.textContent);
+            const degrees = (percentage / 100) * 360;
+            
+            progressCircle.style.background = `conic-gradient(var(--primary) 0deg ${degrees}deg, var(--border) ${degrees}deg 360deg)`;
+        }
+    });
+</script>
+{% endblock %}

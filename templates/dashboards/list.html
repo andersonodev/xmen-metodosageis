@@ -1,0 +1,706 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboards - Sistema Ágil{% endblock %}
+
+{% block page_title %}Dashboards{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .dashboard-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dashboard-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .time-filter {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+
+    .refresh-btn {
+        padding: 0.5rem 1rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .refresh-btn:hover {
+        background: var(--hover);
+    }
+
+    /* Overview Cards */
+    .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .overview-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .overview-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary);
+    }
+
+    .overview-card.success::before {
+        background: var(--success);
+    }
+
+    .overview-card.warning::before {
+        background: var(--warning);
+    }
+
+    .overview-card.error::before {
+        background: var(--error);
+    }
+
+    .overview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .overview-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.75rem;
+        background: rgba(var(--primary-rgb), 0.1);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .overview-icon.success {
+        background: rgba(34, 197, 94, 0.1);
+        color: var(--success);
+    }
+
+    .overview-icon.warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .overview-icon.error {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+    }
+
+    .overview-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .overview-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .overview-change {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .overview-change.positive {
+        color: var(--success);
+    }
+
+    .overview-change.negative {
+        color: var(--error);
+    }
+
+    /* Chart Containers */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .chart-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .chart-btn {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--border);
+        background: var(--bg-highlight);
+        color: var(--text-secondary);
+        border-radius: 0.25rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .chart-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .chart-placeholder {
+        height: 300px;
+        background: var(--bg-highlight);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-inactive);
+        font-size: 0.875rem;
+    }
+
+    /* Tables */
+    .table-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .table-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+    }
+
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .table-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .view-all-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .view-all-link:hover {
+        text-decoration: underline;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .data-table th {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .data-table td {
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .data-table tr:hover {
+        background: var(--bg-highlight);
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background: rgba(34, 197, 94, 0.2);
+        color: var(--success);
+    }
+
+    .status-pending {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warning);
+    }
+
+    .status-completed {
+        background: rgba(59, 130, 246, 0.2);
+        color: var(--info);
+    }
+
+    .priority-high {
+        color: var(--error);
+    }
+
+    .priority-medium {
+        color: var(--warning);
+    }
+
+    .priority-low {
+        color: var(--success);
+    }
+
+    /* Activity Feed */
+    .activity-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+    }
+
+    .activity-feed {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        line-height: 1.4;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        color: var(--text-inactive);
+        font-size: 0.75rem;
+    }
+
+    .user-name {
+        font-weight: 500;
+        color: var(--primary);
+    }
+
+    @media (max-width: 1024px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .table-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .dashboard-controls {
+            justify-content: center;
+        }
+
+        .overview-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">
+            <i class="fas fa-chart-line"></i>
+            Dashboard Executivo
+        </h1>
+        <div class="dashboard-controls">
+            <select class="time-filter" id="timeFilter">
+                <option value="7d">Últimos 7 dias</option>
+                <option value="30d" selected>Últimos 30 dias</option>
+                <option value="90d">Últimos 90 dias</option>
+                <option value="1y">Último ano</option>
+            </select>
+            <button class="refresh-btn" onclick="refreshDashboard()">
+                <i class="fas fa-sync"></i>
+                Atualizar
+            </button>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="overview-grid">
+        <div class="overview-card">
+            <div class="overview-header">
+                <div class="overview-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+            </div>
+            <div class="overview-value">{{ total_projects }}</div>
+            <div class="overview-label">Projetos Ativos</div>
+            <div class="overview-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +12% este mês
+            </div>
+        </div>
+
+        <div class="overview-card success">
+            <div class="overview-header">
+                <div class="overview-icon success">
+                    <i class="fas fa-tasks"></i>
+                </div>
+            </div>
+            <div class="overview-value">{{ total_tasks }}</div>
+            <div class="overview-label">Tasks Completadas</div>
+            <div class="overview-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +8% este mês
+            </div>
+        </div>
+
+        <div class="overview-card warning">
+            <div class="overview-header">
+                <div class="overview-icon warning">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="overview-value">{{ total_members }}</div>
+            <div class="overview-label">Membros Ativos</div>
+            <div class="overview-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +3 novos
+            </div>
+        </div>
+
+        <div class="overview-card error">
+            <div class="overview-header">
+                <div class="overview-icon error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+            <div class="overview-value">{{ overdue_tasks }}</div>
+            <div class="overview-label">Tasks Atrasadas</div>
+            <div class="overview-change negative">
+                <i class="fas fa-arrow-down"></i>
+                -5% esta semana
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-grid">
+        <!-- Main Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Progresso dos Projetos</h3>
+                <div class="chart-actions">
+                    <button class="chart-btn active">Semanal</button>
+                    <button class="chart-btn">Mensal</button>
+                    <button class="chart-btn">Anual</button>
+                </div>
+            </div>
+            <div class="chart-placeholder">
+                <i class="fas fa-chart-line"></i>
+                Gráfico de progresso dos projetos
+            </div>
+        </div>
+
+        <!-- Side Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">Distribuição de Tasks</h3>
+            </div>
+            <div class="chart-placeholder">
+                <i class="fas fa-chart-pie"></i>
+                Gráfico de distribuição de tasks por status
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Section -->
+    <div class="table-section">
+        <!-- Recent Projects -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3 class="table-title">Projetos Recentes</h3>
+                <a href="{% url 'projects:list' %}" class="view-all-link">Ver todos</a>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Projeto</th>
+                        <th>Status</th>
+                        <th>Progresso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in recent_projects %}
+                    <tr>
+                        <td>{{ project.name }}</td>
+                        <td>
+                            <span class="status-badge status-{{ project.status }}">
+                                {{ project.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ project.progress|default:0 }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--text-inactive);">
+                            Nenhum projeto encontrado
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Recent Tasks -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3 class="table-title">Tasks Prioritárias</h3>
+                <a href="{% url 'tasks:list' %}" class="view-all-link">Ver todas</a>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Prioridade</th>
+                        <th>Deadline</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in priority_tasks %}
+                    <tr>
+                        <td>{{ task.title|truncatechars:30 }}</td>
+                        <td>
+                            <span class="priority-{{ task.priority }}">
+                                {% if task.priority >= 3 %}
+                                    <i class="fas fa-arrow-up"></i> 
+                                    {% if task.priority == 4 %}Crítica{% else %}Alta{% endif %}
+                                {% elif task.priority == 2 %}
+                                    <i class="fas fa-minus"></i> Normal
+                                {% else %}
+                                    <i class="fas fa-arrow-down"></i> Baixa
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if task.due_date %}
+                                {{ task.due_date|date:"d/m/Y" }}
+                            {% else %}
+                                Sem prazo
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--text-inactive);">
+                            Nenhuma task encontrada
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="activity-section">
+        <div class="table-header">
+            <h3 class="table-title">Atividade Recente</h3>
+            <a href="#" class="view-all-link">Ver histórico completo</a>
+        </div>
+        <div class="activity-feed">
+            {% for activity in recent_activities %}
+            <div class="activity-item">
+                <div class="activity-icon">
+                    {% if activity.type == 'project_created' %}
+                        <i class="fas fa-plus"></i>
+                    {% elif activity.type == 'task_completed' %}
+                        <i class="fas fa-check"></i>
+                    {% elif activity.type == 'user_joined' %}
+                        <i class="fas fa-user-plus"></i>
+                    {% else %}
+                        <i class="fas fa-info"></i>
+                    {% endif %}
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">
+                        <span class="user-name">{{ activity.user.get_full_name|default:activity.user.username }}</span>
+                        {{ activity.description }}
+                    </div>
+                    <div class="activity-time">{{ activity.created_at|timesince }} atrás</div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-info"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">Nenhuma atividade recente</div>
+                    <div class="activity-time">--</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshDashboard() {
+    const btn = document.querySelector('.refresh-btn');
+    const icon = btn.querySelector('i');
+    
+    // Show loading state
+    icon.classList.add('fa-spin');
+    btn.disabled = true;
+    
+    // Simulate refresh (in real app, make AJAX call)
+    setTimeout(() => {
+        icon.classList.remove('fa-spin');
+        btn.disabled = false;
+        // location.reload();
+    }, 1000);
+}
+
+// Time filter change handler
+document.getElementById('timeFilter').addEventListener('change', function() {
+    const selectedPeriod = this.value;
+    console.log('Time filter changed to:', selectedPeriod);
+    // Here you would make an AJAX call to update the dashboard data
+});
+
+// Chart button handlers
+document.querySelectorAll('.chart-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        // Remove active class from siblings
+        this.parentElement.querySelectorAll('.chart-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+        // Add active class to clicked button
+        this.classList.add('active');
+        
+        console.log('Chart view changed to:', this.textContent);
+        // Here you would update the chart data
+    });
+});
+
+// Auto-refresh every 5 minutes
+setInterval(() => {
+    console.log('Auto-refreshing dashboard data...');
+    // Make AJAX call to update data without full page reload
+}, 300000);
+
+// Add CSRF token
+{% csrf_token %}
+</script>
+{% endblock %}

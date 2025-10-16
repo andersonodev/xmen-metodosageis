@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chat - Sistema Ágil{% endblock %}
+
+{% block page_title %}Chat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+    }
+
+    .rooms-sidebar {
+        background: var(--bg-secondary);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        overflow-y: auto;
+    }
+
+    .rooms-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .rooms-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .new-room-btn {
+        padding: 0.5rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+    }
+
+    .new-room-btn:hover {
+        background: var(--hover);
+    }
+
+    .room-list {
+        list-style: none;
+    }
+
+    .room-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .room-link {
+        display: block;
+        padding: 1rem;
+        background: var(--bg-highlight);
+        border-radius: 0.5rem;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+
+    .room-link:hover, .room-link.active {
+        background: var(--hover-bg);
+        border-left-color: var(--primary);
+    }
+
+    .room-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .room-meta {
+        font-size: 0.75rem;
+        color: var(--text-inactive);
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .chat-main {
+        background: var(--bg-secondary);
+        border-radius: 0.75rem;
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-inactive);
+    }
+
+    .chat-placeholder i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: var(--primary);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-inactive);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--primary);
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal {
+        background: var(--bg-secondary);
+        border-radius: 0.75rem;
+        padding: 2rem;
+        width: 90%;
+        max-width: 500px;
+        border: 1px solid var(--border);
+    }
+
+    .modal-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-highlight);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .checkbox-group {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background: var(--bg-highlight);
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .checkbox-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .checkbox-item input {
+        margin-right: 0.75rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--hover);
+    }
+
+    .btn-secondary {
+        background: var(--bg-highlight);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--hover-bg);
+    }
+
+    @media (max-width: 768px) {
+        .chat-grid {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+
+        .rooms-sidebar {
+            order: 2;
+            height: 300px;
+        }
+
+        .chat-main {
+            order: 1;
+            height: 400px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-grid">
+    <!-- Rooms Sidebar -->
+    <div class="rooms-sidebar">
+        <div class="rooms-header">
+            <h2 class="rooms-title">Salas de Chat</h2>
+            <button class="new-room-btn" onclick="openCreateRoomModal()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+        {% if rooms %}
+            <ul class="room-list">
+                {% for room in rooms %}
+                <li class="room-item">
+                    <a href="{% url 'chat:room' room.id %}" class="room-link{% if room.id == current_room_id %} active{% endif %}">
+                        <div class="room-name">
+                            <i class="fas fa-{{ room.is_private|yesno:'lock,users' }}"></i>
+                            {{ room.name }}
+                        </div>
+                        <div class="room-meta">
+                            <span>{{ room.participants.count }} membro{{ room.participants.count|pluralize }}</span>
+                            <span>{{ room.created_at|date:"d/m" }}</span>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <p>Nenhuma sala de chat ainda.</p>
+                <p>Clique no + para criar a primeira!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Chat Main Area -->
+    <div class="chat-main">
+        <div class="chat-placeholder">
+            <i class="fas fa-comment-dots"></i>
+            <h3>Selecione uma sala para começar a conversar</h3>
+            <p>Escolha uma sala existente ou crie uma nova para começar a conversar com sua equipe.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Create Room Modal -->
+<div class="modal-overlay" id="createRoomModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Nova Sala de Chat</h3>
+        </div>
+
+        <form method="post" action="{% url 'chat:create_room' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="room_name" class="form-label">Nome da Sala</label>
+                <input type="text" id="room_name" name="name" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="room_description" class="form-label">Descrição (opcional)</label>
+                <input type="text" id="room_description" name="description" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <input type="checkbox" name="is_private" value="1"> Sala Privada
+                </label>
+            </div>
+
+            {% if users %}
+            <div class="form-group">
+                <label class="form-label">Participantes</label>
+                <div class="checkbox-group">
+                    {% for user in users %}
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="participants" value="{{ user.id }}" id="user_{{ user.id }}">
+                        <label for="user_{{ user.id }}">{{ user.first_name|default:user.username }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateRoomModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Criar Sala</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openCreateRoomModal() {
+    document.getElementById('createRoomModal').classList.add('active');
+}
+
+function closeCreateRoomModal() {
+    document.getElementById('createRoomModal').classList.remove('active');
+}
+
+// Close modal when clicking outside
+document.getElementById('createRoomModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCreateRoomModal();
+    }
+});
+</script>
+{% endblock %}

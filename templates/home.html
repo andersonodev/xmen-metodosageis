@@ -1,0 +1,497 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema Ágil{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Welcome Section -->
+    <div class="welcome-section mb-8">
+        <div class="welcome-header">
+            <h1 class="text-2xl font-bold mb-2">
+                Bem-vindo, {{ user.first_name|default:user.username }}! 👋
+            </h1>
+            <p class="text-secondary">
+                {% if user.is_leader %}
+                    Como líder, você tem acesso completo às funcionalidades da plataforma.
+                {% else %}
+                    Colaborador ativo na construção de times ágeis excepcionais.
+                {% endif %}
+            </p>
+        </div>
+        <div class="user-status">
+            <div class="status-badge {{ user.is_available|yesno:'available,unavailable' }}">
+                <i class="fas fa-circle"></i>
+                {{ user.is_available|yesno:'Disponível,Indisponível' }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid mb-8">
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-value">{{ total_users }}</div>
+                <div class="stat-label">Usuários Ativos</div>
+            </div>
+            <div class="stat-icon users">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-value">{{ leaders_count }}</div>
+                <div class="stat-label">Líderes</div>
+            </div>
+            <div class="stat-icon leaders">
+                <i class="fas fa-crown"></i>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-value">{{ collaborators_count }}</div>
+                <div class="stat-label">Colaboradores</div>
+            </div>
+            <div class="stat-icon collaborators">
+                <i class="fas fa-user-friends"></i>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-value">{{ user.availability_hours }}h</div>
+                <div class="stat-label">Sua Disponibilidade</div>
+            </div>
+            <div class="stat-icon availability">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-grid">
+        <!-- Left Column -->
+        <div class="left-column">
+            <!-- Quick Actions -->
+            <div class="card mb-6">
+                <h2 class="text-xl font-semibold mb-4">Ações Rápidas</h2>
+                <div class="quick-actions">
+                    {% if user.is_leader %}
+                    <a href="#" class="action-button">
+                        <i class="fas fa-plus"></i>
+                        <span>Criar Time</span>
+                    </a>
+                    <a href="#" class="action-button">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Novo Projeto</span>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'accounts:profile' %}" class="action-button">
+                        <i class="fas fa-user-edit"></i>
+                        <span>Editar Perfil</span>
+                    </a>
+                    <a href="#" class="action-button">
+                        <i class="fas fa-cog"></i>
+                        <span>Competências</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-4">Atividade Recente</h2>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-text">Login realizado com sucesso</p>
+                            <p class="activity-time text-secondary text-sm">Agora mesmo</p>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-text">Conta criada no sistema</p>
+                            <p class="activity-time text-secondary text-sm">Há algumas horas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <!-- Platform Features -->
+            <div class="card mb-6">
+                <h2 class="text-xl font-semibold mb-4">Recursos da Plataforma</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon ai">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="font-semibold">IA para Times</h3>
+                            <p class="text-sm text-secondary">Recomendações inteligentes</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon analytics">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="font-semibold">Analytics</h3>
+                            <p class="text-sm text-secondary">Métricas em tempo real</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon chat">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="font-semibold">Chat Real-time</h3>
+                            <p class="text-sm text-secondary">Colaboração instantânea</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon integration">
+                            <i class="fas fa-plug"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="font-semibold">Integrações</h3>
+                            <p class="text-sm text-secondary">Conecte suas ferramentas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Links -->
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-4">Links do Sistema</h2>
+                <div class="system-links">
+                    <a href="/api/docs/" class="system-link">
+                        <i class="fas fa-book"></i>
+                        <span>Documentação da API</span>
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    
+                    {% if user.is_staff %}
+                    <a href="/admin/" class="system-link">
+                        <i class="fas fa-tools"></i>
+                        <span>Painel Administrativo</span>
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    {% endif %}
+                    
+                    <a href="/api/redoc/" class="system-link">
+                        <i class="fas fa-code"></i>
+                        <span>API Reference</span>
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .welcome-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-highlight) 100%);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .user-status {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .status-badge.available {
+        background-color: rgba(22, 163, 74, 0.1);
+        color: var(--success);
+    }
+
+    .status-badge.unavailable {
+        background-color: rgba(220, 38, 38, 0.1);
+        color: var(--error);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stat-card {
+        background-color: var(--bg-highlight);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px var(--shadow);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+        line-height: 1;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-icon.users {
+        background-color: rgba(37, 99, 235, 0.1);
+        color: var(--blue-tech);
+    }
+
+    .stat-icon.leaders {
+        background-color: rgba(255, 107, 0, 0.1);
+        color: var(--primary);
+    }
+
+    .stat-icon.collaborators {
+        background-color: rgba(124, 58, 237, 0.1);
+        color: var(--purple-collab);
+    }
+
+    .stat-icon.availability {
+        background-color: rgba(6, 182, 212, 0.1);
+        color: var(--cyan-intelligent);
+    }
+
+    /* Main Grid */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .action-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem 1rem;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .action-button:hover {
+        background-color: var(--hover-bg);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .action-button i {
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+
+    /* Activity List */
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--bg-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 0.9rem;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        margin-bottom: 0.25rem;
+    }
+
+    /* Features Grid */
+    .features-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background-color: var(--bg-secondary);
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+
+    .feature-item:hover {
+        background-color: var(--hover-bg);
+    }
+
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .feature-icon.ai {
+        background-color: rgba(124, 58, 237, 0.1);
+        color: var(--purple-collab);
+    }
+
+    .feature-icon.analytics {
+        background-color: rgba(37, 99, 235, 0.1);
+        color: var(--blue-tech);
+    }
+
+    .feature-icon.chat {
+        background-color: rgba(6, 182, 212, 0.1);
+        color: var(--cyan-intelligent);
+    }
+
+    .feature-icon.integration {
+        background-color: rgba(255, 107, 0, 0.1);
+        color: var(--primary);
+    }
+
+    .feature-content h3 {
+        margin-bottom: 0.25rem;
+    }
+
+    /* System Links */
+    .system-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .system-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background-color: var(--bg-secondary);
+        border-radius: 8px;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .system-link:hover {
+        background-color: var(--hover-bg);
+        color: var(--primary);
+    }
+
+    .system-link i:first-child {
+        color: var(--primary);
+    }
+
+    .system-link i:last-child {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: var(--text-inactive);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .welcome-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .main-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

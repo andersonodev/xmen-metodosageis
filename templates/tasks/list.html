@@ -1,0 +1,740 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Tasks - Sistema Ágil{% endblock %}
+
+{% block page_title %}Tasks{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tasks-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .tasks-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .tasks-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .add-task-btn {
+        padding: 0.75rem 1.5rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .add-task-btn:hover {
+        background: var(--hover);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number.total {
+        color: var(--primary);
+    }
+
+    .stat-number.todo {
+        color: var(--warning);
+    }
+
+    .stat-number.progress {
+        color: var(--info);
+    }
+
+    .stat-number.completed {
+        color: var(--success);
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        background: var(--bg-highlight);
+        padding: 0.25rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .filter-tab {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-radius: 0.25rem;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .filter-tab.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .filter-tab:hover:not(.active) {
+        background: var(--hover-bg);
+        color: var(--primary);
+    }
+
+    .tasks-board {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .task-column {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        min-height: 500px;
+    }
+
+    .column-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .column-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .column-count {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .task-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .task-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .task-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .task-priority {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .task-priority.high {
+        background: var(--error);
+    }
+
+    .task-priority.medium {
+        background: var(--warning);
+    }
+
+    .task-priority.low {
+        background: var(--success);
+    }
+
+    .task-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        padding-right: 1rem;
+        line-height: 1.3;
+    }
+
+    .task-description {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        line-height: 1.4;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .task-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        color: var(--text-inactive);
+    }
+
+    .task-assignee {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .assignee-avatar {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.625rem;
+        font-weight: 500;
+    }
+
+    .task-due-date {
+        color: var(--text-secondary);
+    }
+
+    .task-due-date.overdue {
+        color: var(--error);
+        font-weight: 500;
+    }
+
+    .task-due-date.today {
+        color: var(--warning);
+        font-weight: 500;
+    }
+
+    .task-tags {
+        display: flex;
+        gap: 0.25rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .task-tag {
+        padding: 0.125rem 0.5rem;
+        background: rgba(var(--primary-rgb), 0.1);
+        color: var(--primary);
+        border-radius: 0.25rem;
+        font-size: 0.625rem;
+        font-weight: 500;
+    }
+
+    .empty-column {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-inactive);
+    }
+
+    .empty-column i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-inactive);
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+
+    .view-btn {
+        padding: 0.5rem;
+        border: 1px solid var(--border);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .view-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .view-btn:hover:not(.active) {
+        background: var(--hover-bg);
+        color: var(--primary);
+    }
+
+    .tasks-list-view {
+        display: none;
+    }
+
+    .tasks-list-view.active {
+        display: block;
+    }
+
+    .tasks-board.list-mode {
+        display: none;
+    }
+
+    .task-row {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        display: grid;
+        grid-template-columns: 2fr 1fr 120px 100px 80px;
+        gap: 1rem;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+
+    .task-row:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .task-row-title {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .task-row-project {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .task-row-assignee {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .task-row-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .status-todo {
+        background: rgba(156, 163, 175, 0.2);
+        color: var(--text-secondary);
+    }
+
+    .status-in_progress {
+        background: rgba(59, 130, 246, 0.2);
+        color: var(--info);
+    }
+
+    .status-completed {
+        background: rgba(34, 197, 94, 0.2);
+        color: var(--success);
+    }
+
+    @media (max-width: 768px) {
+        .tasks-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .filter-tabs {
+            justify-content: center;
+        }
+
+        .tasks-board {
+            grid-template-columns: 1fr;
+        }
+
+        .task-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .view-toggle {
+            margin: 0;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tasks-container">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number total">{{ total_tasks }}</div>
+            <div class="stat-label">Total de Tasks</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number todo">{{ todo_tasks }}</div>
+            <div class="stat-label">Para Fazer</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number progress">{{ progress_tasks }}</div>
+            <div class="stat-label">Em Progresso</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number completed">{{ completed_tasks }}</div>
+            <div class="stat-label">Concluídas</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="tasks-header">
+        <h1 class="tasks-title">
+            <i class="fas fa-tasks"></i>
+            Suas Tasks
+        </h1>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="view-toggle">
+                <button class="view-btn active" onclick="toggleView('board')">
+                    <i class="fas fa-columns"></i>
+                </button>
+                <button class="view-btn" onclick="toggleView('list')">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+            <button class="add-task-btn" onclick="openCreateTaskModal()">
+                <i class="fas fa-plus"></i>
+                Nova Task
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterTasks('all')">
+            Todas
+        </button>
+        <button class="filter-tab" onclick="filterTasks('my')">
+            Minhas Tasks
+        </button>
+        <button class="filter-tab" onclick="filterTasks('today')">
+            Hoje
+        </button>
+        <button class="filter-tab" onclick="filterTasks('overdue')">
+            Atrasadas
+        </button>
+        <button class="filter-tab" onclick="filterTasks('high')">
+            Alta Prioridade
+        </button>
+    </div>
+
+    <!-- Tasks Board View -->
+    <div class="tasks-board" id="tasksBoard">
+        <!-- To Do Column -->
+        <div class="task-column">
+            <div class="column-header">
+                <h3 class="column-title">
+                    <i class="fas fa-circle" style="color: var(--warning);"></i>
+                    Para Fazer
+                </h3>
+                <span class="column-count">{{ todo_tasks }}</span>
+            </div>
+            <div class="task-list">
+                {% for task in tasks %}
+                    {% if task.status == 'todo' %}
+                    <div class="task-card" data-status="{{ task.status }}" data-priority="{{ task.priority }}" onclick="openTaskDetail('{{ task.id }}')">
+                        <div class="task-priority {{ task.priority }}"></div>
+                        <h4 class="task-title">{{ task.title }}</h4>
+                        <p class="task-description">{{ task.description|truncatechars:80 }}</p>
+                        
+                        <div class="task-meta">
+                            <div class="task-assignee">
+                                {% if task.assignee %}
+                                <div class="assignee-avatar" title="{% user_team_role task.assignee task.project as role %}{% if role %}{{ task.assignee.get_full_name|default:task.assignee.username }} - {{ role }}{% else %}{{ task.assignee.get_full_name|default:task.assignee.username }} - Membro da equipe{% endif %}">
+                                    {{ task.assignee.first_name.0|default:task.assignee.username.0|upper }}
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.1rem;">
+                                    <span>{{ task.assignee.first_name|default:task.assignee.username }}</span>
+                                    {% user_team_role task.assignee task.project as role %}
+                                    {% if role %}
+                                        <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 500;">{{ role }}</span>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span>Não atribuída</span>
+                                {% endif %}
+                            </div>
+                            <div class="task-due-date {% if task.due_date and task.due_date < today %}overdue{% elif task.due_date == today %}today{% endif %}">
+                                {% if task.due_date %}
+                                    {{ task.due_date|date:"d/m" }}
+                                {% else %}
+                                    Sem prazo
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if task.tags.exists %}
+                        <div class="task-tags">
+                            {% for tag in task.tags.all|slice:":3" %}
+                            <span class="task-tag">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% empty %}
+                <div class="empty-column">
+                    <i class="fas fa-inbox"></i>
+                    <p>Nenhuma task encontrada</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="task-column">
+            <div class="column-header">
+                <h3 class="column-title">
+                    <i class="fas fa-circle" style="color: var(--info);"></i>
+                    Em Progresso
+                </h3>
+                <span class="column-count">{{ progress_tasks }}</span>
+            </div>
+            <div class="task-list">
+                {% for task in tasks %}
+                    {% if task.status == 'in_progress' %}
+                    <div class="task-card" data-status="{{ task.status }}" data-priority="{{ task.priority }}" onclick="openTaskDetail('{{ task.id }}')">
+                        <div class="task-priority {{ task.priority }}"></div>
+                        <h4 class="task-title">{{ task.title }}</h4>
+                        <p class="task-description">{{ task.description|truncatechars:80 }}</p>
+                        
+                        <div class="task-meta">
+                            <div class="task-assignee">
+                                {% if task.assignee %}
+                                <div class="assignee-avatar">
+                                    {{ task.assignee.first_name.0|default:task.assignee.username.0|upper }}
+                                </div>
+                                <span>{{ task.assignee.first_name|default:task.assignee.username }}</span>
+                                {% else %}
+                                <span>Não atribuída</span>
+                                {% endif %}
+                            </div>
+                            <div class="task-due-date {% if task.due_date and task.due_date < today %}overdue{% elif task.due_date == today %}today{% endif %}">
+                                {% if task.due_date %}
+                                    {{ task.due_date|date:"d/m" }}
+                                {% else %}
+                                    Sem prazo
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if task.tags.exists %}
+                        <div class="task-tags">
+                            {% for tag in task.tags.all|slice:":3" %}
+                            <span class="task-tag">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Completed Column -->
+        <div class="task-column">
+            <div class="column-header">
+                <h3 class="column-title">
+                    <i class="fas fa-circle" style="color: var(--success);"></i>
+                    Concluídas
+                </h3>
+                <span class="column-count">{{ completed_tasks }}</span>
+            </div>
+            <div class="task-list">
+                {% for task in tasks %}
+                    {% if task.status == 'done' %}
+                    <div class="task-card" data-status="{{ task.status }}" data-priority="{{ task.priority }}" onclick="openTaskDetail('{{ task.id }}')">
+                        <div class="task-priority {{ task.priority }}"></div>
+                        <h4 class="task-title">{{ task.title }}</h4>
+                        <p class="task-description">{{ task.description|truncatechars:80 }}</p>
+                        
+                        <div class="task-meta">
+                            <div class="task-assignee">
+                                {% if task.assignee %}
+                                <div class="assignee-avatar">
+                                    {{ task.assignee.first_name.0|default:task.assignee.username.0|upper }}
+                                </div>
+                                <span>{{ task.assignee.first_name|default:task.assignee.username }}</span>
+                                {% else %}
+                                <span>Não atribuída</span>
+                                {% endif %}
+                            </div>
+                            <div class="task-due-date">
+                                {% if task.completed_at %}
+                                    {{ task.completed_at|date:"d/m" }}
+                                {% else %}
+                                    Concluída
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if task.tags.exists %}
+                        <div class="task-tags">
+                            {% for tag in task.tags.all|slice:":3" %}
+                            <span class="task-tag">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks List View -->
+    <div class="tasks-list-view" id="tasksListView">
+        {% for task in tasks %}
+        <div class="task-row" data-status="{{ task.status }}" data-priority="{{ task.priority }}" onclick="openTaskDetail('{{ task.id }}')">
+            <div>
+                <div class="task-row-title">{{ task.title }}</div>
+                <div class="task-row-project">{{ task.project.name|default:"Sem projeto" }}</div>
+            </div>
+            <div class="task-row-assignee">
+                {% if task.assignee %}
+                <div class="assignee-avatar">
+                    {{ task.assignee.first_name.0|default:task.assignee.username.0|upper }}
+                </div>
+                <span>{{ task.assignee.first_name|default:task.assignee.username }}</span>
+                {% else %}
+                <span>Não atribuída</span>
+                {% endif %}
+            </div>
+            <div class="task-row-status status-{{ task.status }}">
+                {% if task.status == 'todo' %}
+                    Para Fazer
+                {% elif task.status == 'in_progress' %}
+                    Em Progresso
+                {% else %}
+                    Concluída
+                {% endif %}
+            </div>
+            <div class="task-due-date">
+                {% if task.due_date %}
+                    {{ task.due_date|date:"d/m/Y" }}
+                {% else %}
+                    Sem prazo
+                {% endif %}
+            </div>
+            <div class="task-priority {{ task.priority }}"></div>
+        </div>
+        {% empty %}
+        <div class="empty-column">
+            <i class="fas fa-tasks"></i>
+            <p>Nenhuma task encontrada</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function toggleView(view) {
+    const boardView = document.getElementById('tasksBoard');
+    const listView = document.getElementById('tasksListView');
+    const viewBtns = document.querySelectorAll('.view-btn');
+
+    viewBtns.forEach(btn => btn.classList.remove('active'));
+
+    if (view === 'board') {
+        boardView.style.display = 'grid';
+        listView.classList.remove('active');
+        document.querySelector('.view-btn:first-child').classList.add('active');
+    } else {
+        boardView.style.display = 'none';
+        listView.classList.add('active');
+        document.querySelector('.view-btn:last-child').classList.add('active');
+    }
+}
+
+function filterTasks(filter) {
+    // Update tab appearance
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Filter logic would go here
+    console.log('Filtering tasks by:', filter);
+}
+
+function openTaskDetail(taskId) {
+    window.location.href = `/tasks/${taskId}/`;
+}
+
+function openCreateTaskModal() {
+    // This would open a modal or redirect to create page
+    window.location.href = '/tasks/create/';
+}
+
+// Add CSRF token
+{% csrf_token %}
+</script>
+{% endblock %}

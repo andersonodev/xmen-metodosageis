@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Redis for Channels and Celery
+  redis:
+    image: redis:7-alpine
+    container_name: xmen_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Main Django application
+  web:
+    build: .
+    container_name: xmen_web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-xmen-agileteam-development-key
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+    depends_on:
+      - redis
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             daphne -b 0.0.0.0 -p 8000 xmen_agileteam.asgi:application"
+
+  # Celery Worker
+  worker:
+    build: .
+    container_name: xmen_worker
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-xmen-agileteam-development-key
+    depends_on:
+      - redis
+    command: celery -A xmen_agileteam worker -l info
+
+  # Celery Beat (Scheduler)
+  beat:
+    build: .
+    container_name: xmen_beat
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-xmen-agileteam-development-key
+    depends_on:
+      - redis
+    command: celery -A xmen_agileteam beat -l info
+
+  # Flower (Celery monitoring) - Optional
+  flower:
+    build: .
+    container_name: xmen_flower
+    restart: unless-stopped
+    ports:
+      - "5555:5555"
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-xmen-agileteam-development-key
+    depends_on:
+      - redis
+    command: celery -A xmen_agileteam flower
+
+volumes:
+  redis_data:
+  static_volume:
+  media_volume:

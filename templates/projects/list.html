@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Projetos - Sistema Ágil{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        color: var(--text-primary);
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: var(--primary);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-box input {
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        width: 300px;
+        font-size: 0.9rem;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-inactive);
+    }
+
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .project-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .project-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(255, 107, 0, 0.15);
+        border-color: var(--primary);
+    }
+
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .project-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        line-height: 1.3;
+    }
+
+    .project-description {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-active {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+    }
+
+    .status-completed {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .status-on-hold {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .status-cancelled {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .project-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .project-team {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .team-avatars {
+        display: flex;
+        margin-left: 0.5rem;
+    }
+
+    .team-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-left: -4px;
+        border: 2px solid var(--bg-secondary);
+        position: relative;
+    }
+
+    .team-avatar:first-child {
+        margin-left: 0;
+    }
+
+    .project-progress {
+        text-align: right;
+    }
+
+    .progress-text {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+
+    .progress-bar {
+        width: 80px;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), #f97316);
+        border-radius: 2px;
+        transition: width 0.3s ease;
+    }
+
+    .project-actions {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .project-card:hover .project-actions {
+        opacity: 1;
+    }
+
+    .action-btn {
+        padding: 0.5rem;
+        border: none;
+        background: var(--bg-primary);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 0.25rem;
+    }
+
+    .action-btn:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--text-inactive);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .filter-btn.active,
+    .filter-btn:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        .projects-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filters {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-project-diagram"></i>
+        Projetos
+    </h1>
+    <div class="header-actions">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar projetos...">
+        </div>
+        <a href="{% url 'projects:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Novo Projeto
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+    <button class="filter-btn active" data-status="all">
+        <i class="fas fa-list"></i>
+        Todos
+    </button>
+    <button class="filter-btn" data-status="active">
+        <i class="fas fa-play"></i>
+        Ativos
+    </button>
+    <button class="filter-btn" data-status="completed">
+        <i class="fas fa-check"></i>
+        Concluídos
+    </button>
+    <button class="filter-btn" data-status="on_hold">
+        <i class="fas fa-pause"></i>
+        Pausados
+    </button>
+</div>
+
+<!-- Projects Grid -->
+<div class="projects-grid" id="projectsGrid">
+    {% for project in projects %}
+    <div class="project-card" data-status="{{ project.status }}">
+        <div class="project-actions">
+            <button class="action-btn" onclick="editProject('{{ project.id }}')" title="Editar">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="action-btn" onclick="deleteProject('{{ project.id }}')" title="Excluir">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+
+        <div class="project-header">
+            <div>
+                <h3 class="project-title">{{ project.name }}</h3>
+                <span class="status-badge status-{{ project.status }}">
+                    {{ project.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <p class="project-description">
+            {{ project.description|default:"Sem descrição disponível" }}
+        </p>
+
+        <div class="project-meta">
+            <div class="project-team">
+                <i class="fas fa-users" style="color: var(--text-inactive);"></i>
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                    {{ project.team_members.count }} membro{{ project.team_members.count|pluralize:"s" }}
+                </span>
+                <div class="team-avatars">
+                    {% for member in project.team_members.all|slice:":3" %}
+                    <div class="team-avatar" title="{{ member.get_full_name }}">
+                        {{ member.first_name.0|default:member.username.0 }}{{ member.last_name.0|default:"" }}
+                    </div>
+                    {% endfor %}
+                    {% if project.team_members.count > 3 %}
+                    <div class="team-avatar" title="Mais {{ project.team_members.count|add:"-3" }} membro{{ project.team_members.count|add:"-3"|pluralize:"s" }}">
+                        +{{ project.team_members.count|add:"-3" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="project-progress">
+                <div class="progress-text">75% concluído</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 75%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-project-diagram"></i>
+        <h3>Nenhum projeto encontrado</h3>
+        <p>Comece criando seu primeiro projeto para organizar suas tarefas e colaborar com sua equipe.</p>
+        <a href="{% url 'projects:create' %}" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-plus"></i>
+            Criar Primeiro Projeto
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const projectCards = document.querySelectorAll('.project-card');
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            projectCards.forEach(card => {
+                const title = card.querySelector('.project-title').textContent.toLowerCase();
+                const description = card.querySelector('.project-description').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter functionality
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active filter
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const status = this.getAttribute('data-status');
+                
+                projectCards.forEach(card => {
+                    const cardStatus = card.getAttribute('data-status');
+                    
+                    if (status === 'all' || cardStatus === status) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Add hover animations
+        projectCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+
+    function editProject(projectId) {
+        window.location.href = `/projects/${projectId}/edit/`;
+    }
+
+    function deleteProject(projectId) {
+        if (confirm('Tem certeza que deseja excluir este projeto?')) {
+            // Implementar lógica de exclusão
+            console.log('Excluir projeto:', projectId);
+        }
+    }
+</script>
+{% endblock %}

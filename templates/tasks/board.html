@@ -1,0 +1,2277 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}{% if project %}{{ project.name }} - {% endif %}Kanban Board{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-tasks"></i>
+    {% if project %}{{ project.name }}{% else %}Todas as Tarefas{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Tasks Header */
+    .tasks-header {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-highlight));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tasks-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, 
+            rgba(255, 107, 0, 0.05) 0%, 
+            rgba(37, 99, 235, 0.05) 100%);
+        pointer-events: none;
+    }
+
+    .project-info {
+        z-index: 1;
+        position: relative;
+    }
+
+    .project-meta {
+        display: flex;
+        gap: 2rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .meta-item i {
+        color: var(--primary);
+    }
+
+    .actions {
+        display: flex;
+        gap: 1rem;
+        z-index: 1;
+        position: relative;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        box-shadow: 0 8px 24px rgba(255, 107, 0, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 36px rgba(255, 107, 0, 0.4);
+    }
+
+    .btn-secondary {
+        background: var(--bg-highlight);
+        color: var(--text-primary);
+        border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--hover-bg);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        box-shadow: 0 8px 24px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-success:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 36px rgba(40, 167, 69, 0.4);
+    }
+
+    /* Kanban Container */
+    .kanban-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Stats Cards */
+    .column-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-highlight));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 48px rgba(255, 107, 0, 0.15);
+        border-color: rgba(255, 107, 0, 0.3);
+    }
+
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Kanban Board */
+    .kanban-board {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        min-height: 600px;
+    }
+
+    .kanban-column {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-highlight));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        min-width: 320px;
+        max-width: 350px;
+        flex-shrink: 0;
+        min-height: 600px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kanban-column::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--column-color, linear-gradient(90deg, var(--primary), var(--secondary)));
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .column-header {
+        padding: 1.5rem;
+        border-bottom: 2px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .column-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+    }
+
+    .column-title-input {
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 700;
+        outline: none;
+        width: 100%;
+    }
+
+    .column-title-input:focus {
+        background: var(--bg-highlight);
+        border-radius: 8px;
+        padding: 0.5rem;
+    }
+
+    .task-count {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+        margin-left: auto;
+    }
+
+    .column-menu {
+        position: relative;
+    }
+
+    .column-menu-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .column-menu-btn:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    .column-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        min-width: 200px;
+        display: none;
+    }
+
+    .column-dropdown.show {
+        display: block;
+    }
+
+    .column-dropdown-item {
+        padding: 0.75rem 1rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+    }
+
+    .column-dropdown-item:hover {
+        background: var(--hover-bg);
+    }
+
+    .column-dropdown-item:first-child {
+        border-radius: 12px 12px 0 0;
+    }
+
+    .column-dropdown-item:last-child {
+        border-radius: 0 0 12px 12px;
+    }
+
+    .column-body {
+        padding: 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+    }
+
+    /* Task Cards */
+    .task-card {
+        background: var(--bg-highlight);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.4s ease-out;
+    }
+
+    .task-card[draggable="true"] {
+        cursor: move;
+    }
+
+    .task-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--primary), var(--secondary));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .task-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(255, 107, 0, 0.2);
+        border-color: rgba(255, 107, 0, 0.3);
+    }
+
+    .task-card:hover::before {
+        opacity: 1;
+    }
+
+    .task-card.dragging {
+        opacity: 0.7;
+        transform: rotate(3deg) scale(1.02);
+        box-shadow: 0 16px 48px rgba(255, 107, 0, 0.3);
+    }
+
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .task-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1rem;
+        line-height: 1.4;
+        flex: 1;
+        margin-right: 1rem;
+    }
+
+    .task-type {
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
+    }
+
+    .task-type.story {
+        background: rgba(40, 167, 69, 0.2);
+        color: var(--success);
+    }
+
+    .task-type.bug {
+        background: rgba(220, 53, 69, 0.2);
+        color: var(--error);
+    }
+
+    .task-type.task {
+        background: rgba(0, 123, 255, 0.2);
+        color: var(--info);
+    }
+
+    .task-description {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .task-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .task-priority {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .priority-1 {
+        background: rgba(40, 167, 69, 0.2);
+        color: var(--success);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .priority-2 {
+        background: rgba(0, 123, 255, 0.2);
+        color: var(--info);
+        border: 1px solid rgba(0, 123, 255, 0.3);
+    }
+
+    .priority-3 {
+        background: rgba(245, 124, 0, 0.2);
+        color: var(--warning);
+        border: 1px solid rgba(245, 124, 0, 0.3);
+    }
+
+    .priority-4 {
+        background: rgba(220, 53, 69, 0.2);
+        color: var(--error);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .task-assignee-info {
+        position: relative;
+        display: inline-block;
+    }
+
+    .task-assignee {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .task-assignee:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
+    }
+
+    .task-unassigned {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: 2px dashed var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-inactive);
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+
+    .assignee-details {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        min-width: 180px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .assignee-details::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: var(--border);
+    }
+
+    .task-assignee-info:hover .assignee-details {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .assignee-name {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+    }
+
+    .assignee-role {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        background: var(--bg-highlight);
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+
+    .task-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.75rem;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .task-footer-left,
+    .task-footer-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .task-points {
+        background: var(--bg-secondary);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .task-due-date {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        background: var(--bg-secondary);
+        font-weight: 500;
+    }
+
+    .task-due-date.overdue {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--error);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+
+    .task-comments,
+    .task-attachments {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-weight: 500;
+    }
+
+    .task-comments i,
+    .task-attachments i {
+        opacity: 0.7;
+    }
+
+    /* Empty Column */
+    .empty-column {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-inactive);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .empty-column i {
+        font-size: 3.5rem;
+        color: var(--text-inactive);
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Add Task Button */
+    .add-task-btn {
+        width: 100%;
+        padding: 1rem;
+        border: 2px dashed var(--border);
+        background: transparent;
+        border-radius: 12px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: auto;
+        flex-shrink: 0;
+    }
+
+    .add-task-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(255, 107, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .add-column-btn {
+        min-width: 300px;
+        height: 100px;
+        border: 2px dashed var(--border);
+        background: transparent;
+        border-radius: 16px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .add-column-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(255, 107, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    /* Quick Add Task */
+    .quick-add-task {
+        padding: 1rem;
+        background: var(--bg-highlight);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+
+    .quick-add-task.show {
+        display: block;
+    }
+
+    .quick-add-input {
+        width: 100%;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .quick-add-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    }
+
+    .quick-add-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    /* Drag and Drop */
+    .dropzone {
+        min-height: 60px;
+        border: 2px dashed transparent;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .dropzone.drag-over {
+        border-color: var(--primary);
+        background: rgba(255, 107, 0, 0.1);
+    }
+
+    /* Loading */
+    .loading {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        z-index: 9999;
+    }
+
+    .spinner {
+        border: 3px solid var(--border);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        max-width: 800px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideInUp 0.3s ease;
+        position: relative;
+    }
+
+    .modal-header {
+        padding: 2rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .modal-close:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-highlight);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    }
+
+    .form-control.textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .comments-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .comment {
+        background: var(--bg-highlight);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .comment-date {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .comment-content {
+        color: var(--text-primary);
+        line-height: 1.5;
+    }
+
+    .comment-form {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .comment-input {
+        flex: 1;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .kanban-board {
+            gap: 1.5rem;
+        }
+        
+        .kanban-column {
+            min-width: 280px;
+        }
+        
+        .column-stats {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .tasks-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 2rem;
+            padding: 1.5rem;
+        }
+
+        .project-meta {
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .actions {
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .kanban-board {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .kanban-column {
+            min-width: auto;
+            max-width: none;
+        }
+
+        .column-stats {
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .column-header {
+            padding: 1.5rem;
+        }
+
+        .column-body {
+            padding: 1rem;
+        }
+
+        .modal-content {
+            width: 95%;
+            margin: 1rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .tasks-header {
+            padding: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.85rem;
+        }
+
+        .project-meta {
+            gap: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .meta-item {
+            gap: 0.25rem;
+        }
+
+        .kanban-column {
+            min-height: 500px;
+        }
+
+        .task-card {
+            padding: 1.25rem;
+        }
+
+        .column-stats {
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        }
+
+        .stat-card {
+            padding: 1rem;
+        }
+
+        .stat-number {
+            font-size: 1.75rem;
+        }
+
+        .add-column-btn {
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tasks-header">
+    <div class="project-info">
+        <div class="project-meta">
+            <div class="meta-item">
+                <i class="fas fa-list-check"></i>
+                <span>{{ total_tasks }} tarefa{{ total_tasks|pluralize }}</span>
+            </div>
+            {% if project %}
+            <div class="meta-item">
+                <i class="fas fa-project-diagram"></i>
+                <span>Projeto: {{ project.name }}</span>
+            </div>
+            {% endif %}
+            <div class="meta-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Atualizado hoje</span>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <button class="btn btn-primary" onclick="openTaskModal()">
+            <i class="fas fa-plus"></i>
+            Nova Tarefa
+        </button>
+        <button class="btn btn-success" onclick="openColumnModal()">
+            <i class="fas fa-columns"></i>
+            Nova Coluna
+        </button>
+        <a href="{% url 'tasks:list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i>
+            Ver Lista
+        </a>
+    </div>
+</div>
+
+<div class="kanban-container">
+    <!-- Estatísticas -->
+    <div class="column-stats">
+        {% for column in columns %}
+        <div class="stat-card">
+            <div class="stat-number">{{ task_columns|lookup:column|length }}</div>
+            <div class="stat-label">{{ column.name }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-board">
+        {% for column in columns %}
+        <div class="kanban-column" data-column-id="{{ column.id }}" style="--column-color: {{ column.color }}">
+            <div class="column-header">
+                <div class="column-title">
+                    <input type="text" class="column-title-input" value="{{ column.name }}" 
+                           onblur="updateColumnName({{ column.id }}, this.value)"
+                           onkeypress="if(event.key==='Enter') this.blur()">
+                    <span class="task-count">{{ task_columns|lookup:column|length }}</span>
+                </div>
+                <div class="column-menu">
+                    <button class="column-menu-btn" onclick="toggleColumnMenu({{ column.id }})">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="column-dropdown" id="column-menu-{{ column.id }}">
+                        <button class="column-dropdown-item" onclick="editColumn({{ column.id }})">
+                            <i class="fas fa-edit"></i>
+                            Editar Coluna
+                        </button>
+                        <button class="column-dropdown-item" onclick="setWipLimit({{ column.id }})">
+                            <i class="fas fa-limit"></i>
+                            Limite WIP
+                        </button>
+                        <button class="column-dropdown-item" onclick="deleteColumn({{ column.id }})">
+                            <i class="fas fa-trash"></i>
+                            Deletar Coluna
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="column-body dropzone" data-column-id="{{ column.id }}">
+                <!-- Quick Add Task -->
+                <div class="quick-add-task" id="quick-add-{{ column.id }}">
+                    <input type="text" class="quick-add-input" placeholder="Digite o título da tarefa..." 
+                           onkeypress="if(event.key==='Enter') createQuickTask({{ column.id }}, this.value)">
+                    <div class="quick-add-actions">
+                        <button class="btn btn-primary btn-sm" onclick="createQuickTask({{ column.id }}, document.querySelector('#quick-add-{{ column.id }} input').value)">
+                            Adicionar
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="hideQuickAdd({{ column.id }})">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+
+                {% for task in task_columns|lookup:column %}
+                    <div class="task-card" data-task-id="{{ task.id }}" draggable="true" onclick="openTaskDetailModal({{ task.id }})">
+                        <div class="task-header">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-type {{ task.type }}">{{ task.get_type_display }}</div>
+                        </div>
+                        
+                        {% if task.description %}
+                        <div class="task-description">
+                            {{ task.description|truncatewords:15 }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="task-meta">
+                            <span class="task-priority priority-{{ task.priority }}">
+                                {% if task.priority == 1 %}Baixa{% elif task.priority == 2 %}Normal{% elif task.priority == 3 %}Alta{% else %}Crítica{% endif %}
+                            </span>
+                            {% if task.assignee %}
+                            <div class="task-assignee-info">
+                                <div class="task-assignee" title="{{ task.assignee.get_full_name|default:task.assignee.username }}">
+                                    {{ task.assignee.first_name|first|default:task.assignee.username|first|upper }}
+                                </div>
+                                <div class="assignee-details">
+                                    <span class="assignee-name">{{ task.assignee.get_full_name|default:task.assignee.username }}</span>
+                                    {% user_team_role task.assignee task.project as role %}
+                                    {% if role %}
+                                        <span class="assignee-role">{{ role }}</span>
+                                    {% else %}
+                                        <span class="assignee-role">Membro</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="task-unassigned">
+                                <i class="fas fa-user-slash" title="Não atribuído"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="task-footer">
+                            <div class="task-footer-left">
+                                {% if task.story_points %}
+                                <div class="task-points">
+                                    <i class="fas fa-star"></i>
+                                    {{ task.story_points }} pts
+                                </div>
+                                {% endif %}
+                                {% if task.due_date %}
+                                <div class="task-due-date {% if task.is_overdue %}overdue{% endif %}">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    {{ task.due_date|date:"d/m" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="task-footer-right">
+                                {% if task.comments.count > 0 %}
+                                <div class="task-comments">
+                                    <i class="fas fa-comment"></i>
+                                    {{ task.comments.count }}
+                                </div>
+                                {% endif %}
+                                {% if task.attachments.count > 0 %}
+                                <div class="task-attachments">
+                                    <i class="fas fa-paperclip"></i>
+                                    {{ task.attachments.count }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    {% if forloop.first %}
+                    <div class="empty-column">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>Nenhuma tarefa nesta coluna</p>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                
+                <button class="add-task-btn" onclick="showQuickAdd({{ column.id }})">
+                    <i class="fas fa-plus"></i>
+                    Adicionar Tarefa
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Add Column Button -->
+        <button class="add-column-btn" onclick="openColumnModal()">
+            <i class="fas fa-plus"></i>
+            <span>Adicionar Coluna</span>
+        </button>
+    </div>
+
+    <div class="loading">
+        <div class="spinner"></div>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div id="taskDetailModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Detalhes da Tarefa</h2>
+            <button class="modal-close" onclick="closeTaskDetailModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="taskDetailForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-control" id="taskTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-control" id="taskType">
+                            <option value="story">User Story</option>
+                            <option value="bug">Bug</option>
+                            <option value="task">Tarefa</option>
+                            <option value="epic">Epic</option>
+                            <option value="spike">Spike</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <textarea class="form-control textarea" id="taskDescription" rows="4"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Prioridade</label>
+                        <select class="form-control" id="taskPriority">
+                            <option value="1">Baixa</option>
+                            <option value="2">Normal</option>
+                            <option value="3">Alta</option>
+                            <option value="4">Crítica</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="taskStatus">
+                            <option value="todo">To Do</option>
+                            <option value="in_progress">Em Progresso</option>
+                            <option value="review">Em Revisão</option>
+                            <option value="done">Concluído</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Atribuído a</label>
+                        <select class="form-control" id="taskAssignee">
+                            <option value="">Não atribuído</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}" title="{% user_team_role user project as role %}{% if role %}{{ role }}{% else %}Usuário{% endif %}">
+                                {{ user.get_full_name|default:user.username }}{% user_team_role user project as role %}{% if role %} - {{ role }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Coluna</label>
+                        <select class="form-control" id="taskColumn">
+                            {% for column in columns %}
+                            <option value="{{ column.id }}">{{ column.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Story Points</label>
+                        <input type="number" class="form-control" id="taskStoryPoints" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Horas Estimadas</label>
+                        <input type="number" class="form-control" id="taskEstimatedHours" min="0">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Horas Reais</label>
+                        <input type="number" class="form-control" id="taskActualHours" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Entrega</label>
+                        <input type="datetime-local" class="form-control" id="taskDueDate">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Projeto</label>
+                    <select class="form-control" id="taskProject">
+                        <option value="">Nenhum projeto</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <h3>Comentários</h3>
+                    <div id="commentsContainer"></div>
+                    <div class="comment-form">
+                        <input type="text" class="form-control comment-input" id="newComment" placeholder="Adicionar comentário...">
+                        <button type="button" class="btn btn-primary" onclick="addComment()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-danger" onclick="deleteTask()">
+                <i class="fas fa-trash"></i>
+                Deletar
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeTaskDetailModal()">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" onclick="saveTask()">
+                <i class="fas fa-save"></i>
+                Salvar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Column Modal -->
+<div id="columnModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Nova Coluna</h2>
+            <button class="modal-close" onclick="closeColumnModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="columnForm">
+                <div class="form-group">
+                    <label class="form-label">Nome da Coluna</label>
+                    <input type="text" class="form-control" id="columnName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cor</label>
+                    <input type="color" class="form-control" id="columnColor" value="#6B73FF">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Limite WIP (opcional)</label>
+                    <input type="number" class="form-control" id="columnWipLimit" min="1">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeColumnModal()">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" onclick="saveColumn()">
+                <i class="fas fa-save"></i>
+                Salvar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Task Modal -->
+<div id="createTaskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Nova Tarefa</h2>
+            <button class="modal-close" onclick="closeTaskModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="createTaskForm">
+                <div class="form-group">
+                    <label class="form-label">Título</label>
+                    <input type="text" class="form-control" id="newTaskTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descrição</label>
+                    <textarea class="form-control textarea" id="newTaskDescription" rows="4"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-control" id="newTaskType">
+                            <option value="story">User Story</option>
+                            <option value="bug">Bug</option>
+                            <option value="task">Tarefa</option>
+                            <option value="epic">Epic</option>
+                            <option value="spike">Spike</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Prioridade</label>
+                        <select class="form-control" id="newTaskPriority">
+                            <option value="1">Baixa</option>
+                            <option value="2" selected>Normal</option>
+                            <option value="3">Alta</option>
+                            <option value="4">Crítica</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Atribuído a</label>
+                        <select class="form-control" id="newTaskAssignee">
+                            <option value="">Não atribuído</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}" title="{% user_team_role user project as role %}{% if role %}{{ role }}{% else %}Usuário{% endif %}">
+                                {{ user.get_full_name|default:user.username }}{% user_team_role user project as role %}{% if role %} - {{ role }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Coluna</label>
+                        <select class="form-control" id="newTaskColumn">
+                            {% for column in columns %}
+                            <option value="{{ column.id }}" {% if forloop.first %}selected{% endif %}>{{ column.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Projeto</label>
+                    <select class="form-control" id="newTaskProject">
+                        <option value="">Nenhum projeto</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}" {% if project.id == project.id %}selected{% endif %}>{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" onclick="createTask()">
+                <i class="fas fa-plus"></i>
+                Criar Tarefa
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global variables
+    let draggedElement = null;
+    let currentTaskId = null;
+    let currentColumnId = null;
+
+    // Função auxiliar para templates Django
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeDragAndDrop();
+        initializeEventListeners();
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.column-menu')) {
+                document.querySelectorAll('.column-dropdown').forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
+    });
+
+    function initializeDragAndDrop() {
+        const taskCards = document.querySelectorAll('.task-card[draggable="true"]');
+        const dropzones = document.querySelectorAll('.dropzone');
+        
+        // Add drag events to task cards
+        taskCards.forEach(card => {
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+        });
+
+        // Add drop events to zones
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', handleDragOver);
+            zone.addEventListener('dragenter', handleDragEnter);
+            zone.addEventListener('dragleave', handleDragLeave);
+            zone.addEventListener('drop', handleDrop);
+        });
+    }
+
+    function initializeEventListeners() {
+        // Modal close events
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAllModals();
+            }
+        });
+
+        // Click outside modal to close
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAllModals();
+                }
+            });
+        });
+    }
+
+    // === DRAG AND DROP FUNCTIONS ===
+    function handleDragStart(e) {
+        draggedElement = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.outerHTML);
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        draggedElement = null;
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragEnter(e) {
+        this.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+
+        this.classList.remove('drag-over');
+
+        if (draggedElement !== null) {
+            const taskId = draggedElement.getAttribute('data-task-id');
+            const newColumnId = this.getAttribute('data-column-id');
+            
+            // Move element visually first
+            const addButton = this.querySelector('.add-task-btn');
+            if (addButton) {
+                this.insertBefore(draggedElement, addButton);
+            } else {
+                this.appendChild(draggedElement);
+            }
+            
+            // Update on server
+            updateTaskColumn(taskId, newColumnId);
+        }
+
+        return false;
+    }
+
+    function updateTaskColumn(taskId, columnId) {
+        showLoading();
+
+        fetch('{% url "tasks:update_column" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                task_id: taskId,
+                column_id: columnId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                updateColumnCounters();
+                showNotification('Tarefa movida com sucesso!', 'success');
+            } else {
+                showNotification('Erro ao mover tarefa: ' + data.message, 'error');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showNotification('Erro de conexão', 'error');
+            location.reload();
+        });
+    }
+
+    // === COLUMN MANAGEMENT ===
+    function toggleColumnMenu(columnId) {
+        const menu = document.getElementById(`column-menu-${columnId}`);
+        const isVisible = menu.classList.contains('show');
+        
+        // Close all menus first
+        document.querySelectorAll('.column-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+        
+        // Toggle current menu
+        if (!isVisible) {
+            menu.classList.add('show');
+        }
+    }
+
+    function updateColumnName(columnId, newName) {
+        if (!newName.trim()) return;
+
+        fetch(`/tasks/column/${columnId}/update/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ name: newName.trim() })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Nome da coluna atualizado!', 'success');
+            } else {
+                showNotification('Erro ao atualizar nome: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    function editColumn(columnId) {
+        // Implementation for editing column properties
+        const columnName = document.querySelector(`[data-column-id="${columnId}"] .column-title-input`).value;
+        const newName = prompt('Novo nome da coluna:', columnName);
+        
+        if (newName && newName.trim() !== columnName) {
+            updateColumnName(columnId, newName.trim());
+            document.querySelector(`[data-column-id="${columnId}"] .column-title-input`).value = newName.trim();
+        }
+    }
+
+    function setWipLimit(columnId) {
+        const limit = prompt('Definir limite WIP (deixe vazio para remover):');
+        
+        if (limit !== null) {
+            const wipLimit = limit.trim() === '' ? null : parseInt(limit);
+            
+            fetch(`/tasks/column/${columnId}/update/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ wip_limit: wipLimit })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Limite WIP atualizado!', 'success');
+                } else {
+                    showNotification('Erro ao atualizar limite: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Erro de conexão', 'error');
+            });
+        }
+    }
+
+    function deleteColumn(columnId) {
+        if (confirm('Tem certeza que deseja deletar esta coluna? Esta ação não pode ser desfeita.')) {
+            fetch(`/tasks/column/${columnId}/delete/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Coluna deletada com sucesso!', 'success');
+                    location.reload();
+                } else {
+                    showNotification('Erro ao deletar coluna: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Erro de conexão', 'error');
+            });
+        }
+    }
+
+    // === QUICK ADD TASK ===
+    function showQuickAdd(columnId) {
+        const quickAdd = document.getElementById(`quick-add-${columnId}`);
+        quickAdd.classList.add('show');
+        quickAdd.querySelector('input').focus();
+    }
+
+    function hideQuickAdd(columnId) {
+        const quickAdd = document.getElementById(`quick-add-${columnId}`);
+        quickAdd.classList.remove('show');
+        quickAdd.querySelector('input').value = '';
+    }
+
+    function createQuickTask(columnId, title) {
+        if (!title.trim()) {
+            showNotification('Título é obrigatório', 'error');
+            return;
+        }
+
+        showLoading();
+
+        fetch('/tasks/create-quick/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                title: title.trim(),
+                column_id: columnId,
+                project_id: {% if project %}{{ project.id }}{% else %}null{% endif %}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                showNotification('Tarefa criada com sucesso!', 'success');
+                location.reload(); // Reload to show new task
+            } else {
+                showNotification('Erro ao criar tarefa: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    // === TASK MODALS ===
+    function openTaskModal() {
+        document.getElementById('createTaskModal').classList.add('show');
+    }
+
+    function closeTaskModal() {
+        document.getElementById('createTaskModal').classList.remove('show');
+        document.getElementById('createTaskForm').reset();
+    }
+
+    function createTask() {
+        const form = document.getElementById('createTaskForm');
+        const formData = new FormData(form);
+        
+        const taskData = {
+            title: document.getElementById('newTaskTitle').value,
+            description: document.getElementById('newTaskDescription').value,
+            type: document.getElementById('newTaskType').value,
+            priority: document.getElementById('newTaskPriority').value,
+            assignee_id: document.getElementById('newTaskAssignee').value || null,
+            column_id: document.getElementById('newTaskColumn').value,
+            project_id: document.getElementById('newTaskProject').value || null
+        };
+
+        if (!taskData.title.trim()) {
+            showNotification('Título é obrigatório', 'error');
+            return;
+        }
+
+        showLoading();
+
+        fetch('/tasks/create-quick/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(taskData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                showNotification('Tarefa criada com sucesso!', 'success');
+                closeTaskModal();
+                location.reload();
+            } else {
+                showNotification('Erro ao criar tarefa: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    function openTaskDetailModal(taskId) {
+        currentTaskId = taskId;
+        
+        showLoading();
+
+        fetch(`/tasks/${taskId}/modal/`)
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                populateTaskModal(data);
+                document.getElementById('taskDetailModal').classList.add('show');
+            } else {
+                showNotification('Erro ao carregar tarefa: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    function populateTaskModal(data) {
+        const task = data.task;
+        
+        document.getElementById('taskTitle').value = task.title;
+        document.getElementById('taskDescription').value = task.description;
+        document.getElementById('taskType').value = task.type;
+        document.getElementById('taskPriority').value = task.priority;
+        document.getElementById('taskStatus').value = task.status;
+        const assigneeSelect = document.getElementById('taskAssignee');
+        assigneeSelect.value = task.assignee_id || '';
+        
+        // Atualizar tooltip do assignee com role
+        if (task.assignee_id && task.assignee_role) {
+            const assigneeOption = assigneeSelect.querySelector(`option[value="${task.assignee_id}"]`);
+            if (assigneeOption) {
+                assigneeOption.title = `${task.assignee_name} - ${task.assignee_role}`;
+            }
+        }
+        
+        document.getElementById('taskColumn').value = task.column_id;
+        document.getElementById('taskStoryPoints').value = task.story_points || '';
+        document.getElementById('taskEstimatedHours').value = task.estimated_hours || '';
+        document.getElementById('taskActualHours').value = task.actual_hours || '';
+        document.getElementById('taskDueDate').value = task.due_date || '';
+        document.getElementById('taskProject').value = task.project_id || '';
+        
+        // Populate comments
+        const commentsContainer = document.getElementById('commentsContainer');
+        commentsContainer.innerHTML = '';
+        
+        data.comments.forEach(comment => {
+            const commentElement = createCommentElement(comment);
+            commentsContainer.appendChild(commentElement);
+        });
+    }
+
+    function createCommentElement(comment) {
+        const div = document.createElement('div');
+        div.className = 'comment';
+        div.innerHTML = `
+            <div class="comment-header">
+                <span class="comment-author">${comment.author}</span>
+                <span class="comment-date">${new Date(comment.created_at).toLocaleString()}</span>
+            </div>
+            <div class="comment-content">${comment.content}</div>
+        `;
+        return div;
+    }
+
+    function closeTaskDetailModal() {
+        document.getElementById('taskDetailModal').classList.remove('show');
+        currentTaskId = null;
+    }
+
+    function saveTask() {
+        if (!currentTaskId) return;
+
+        const taskData = {
+            title: document.getElementById('taskTitle').value,
+            description: document.getElementById('taskDescription').value,
+            type: document.getElementById('taskType').value,
+            priority: document.getElementById('taskPriority').value,
+            status: document.getElementById('taskStatus').value,
+            assignee_id: document.getElementById('taskAssignee').value || null,
+            column_id: document.getElementById('taskColumn').value,
+            story_points: document.getElementById('taskStoryPoints').value || null,
+            estimated_hours: document.getElementById('taskEstimatedHours').value || null,
+            actual_hours: document.getElementById('taskActualHours').value || 0,
+            due_date: document.getElementById('taskDueDate').value || null,
+            project_id: document.getElementById('taskProject').value || null
+        };
+
+        showLoading();
+
+        fetch(`/tasks/${currentTaskId}/update/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(taskData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                showNotification('Tarefa atualizada com sucesso!', 'success');
+                closeTaskDetailModal();
+                location.reload();
+            } else {
+                showNotification('Erro ao atualizar tarefa: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    function deleteTask() {
+        if (!currentTaskId) return;
+
+        if (confirm('Tem certeza que deseja deletar esta tarefa? Esta ação não pode ser desfeita.')) {
+            showLoading();
+
+            fetch(`/tasks/${currentTaskId}/delete/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    showNotification('Tarefa deletada com sucesso!', 'success');
+                    closeTaskDetailModal();
+                    location.reload();
+                } else {
+                    showNotification('Erro ao deletar tarefa: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showNotification('Erro de conexão', 'error');
+            });
+        }
+    }
+
+    function addComment() {
+        const commentText = document.getElementById('newComment').value.trim();
+        
+        if (!commentText) {
+            showNotification('Comentário não pode estar vazio', 'error');
+            return;
+        }
+
+        fetch(`/tasks/${currentTaskId}/comment/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ content: commentText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const commentsContainer = document.getElementById('commentsContainer');
+                const commentElement = createCommentElement(data.comment);
+                commentsContainer.insertBefore(commentElement, commentsContainer.firstChild);
+                document.getElementById('newComment').value = '';
+                showNotification('Comentário adicionado!', 'success');
+            } else {
+                showNotification('Erro ao adicionar comentário: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    // === COLUMN MODAL ===
+    function openColumnModal() {
+        currentColumnId = null;
+        document.getElementById('columnModal').classList.add('show');
+    }
+
+    function closeColumnModal() {
+        document.getElementById('columnModal').classList.remove('show');
+        document.getElementById('columnForm').reset();
+        currentColumnId = null;
+    }
+
+    function saveColumn() {
+        const columnData = {
+            name: document.getElementById('columnName').value,
+            color: document.getElementById('columnColor').value,
+            wip_limit: document.getElementById('columnWipLimit').value || null,
+            project_id: {% if project %}{{ project.id }}{% else %}null{% endif %}
+        };
+
+        if (!columnData.name.trim()) {
+            showNotification('Nome da coluna é obrigatório', 'error');
+            return;
+        }
+
+        showLoading();
+
+        fetch('/tasks/create-column/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(columnData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                showNotification('Coluna criada com sucesso!', 'success');
+                closeColumnModal();
+                location.reload();
+            } else {
+                showNotification('Erro ao criar coluna: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showNotification('Erro de conexão', 'error');
+        });
+    }
+
+    // === UTILITY FUNCTIONS ===
+    function updateColumnCounters() {
+        document.querySelectorAll('.kanban-column').forEach(column => {
+            const taskCount = column.querySelectorAll('.task-card').length;
+            const counter = column.querySelector('.task-count');
+            if (counter) {
+                counter.textContent = taskCount;
+            }
+        });
+
+        // Update statistics
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            const columns = document.querySelectorAll('.kanban-column');
+            if (columns[index]) {
+                const taskCount = columns[index].querySelectorAll('.task-card').length;
+                const statNumber = card.querySelector('.stat-number');
+                if (statNumber) {
+                    statNumber.textContent = taskCount;
+                }
+            }
+        });
+    }
+
+    function showLoading() {
+        document.querySelector('.loading').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.querySelector('.loading').style.display = 'none';
+    }
+
+    function closeAllModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.classList.remove('show');
+        });
+    }
+
+    function showNotification(message, type) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+            ${message}
+        `;
+        
+        // Add styles
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
+            color: ${type === 'success' ? '#155724' : '#721c24'};
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        `;
+
+        document.body.appendChild(notification);
+
+        // Remove after 4 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }, 4000);
+    }
+
+    // Add notification animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}
