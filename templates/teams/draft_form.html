@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{% if draft %}Editar Rascunho{% else %}Novo Rascunho{% endif %} - AgileTeam{% endblock %}
+
+{% block extra_css %}
+<style>
+    .draft-form {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 30px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .form-input, .form-select, .form-textarea, .form-multiselect {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: 0.85rem 1rem;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    .form-multiselect {
+        min-height: 220px;
+    }
+
+    .form-help {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 0.35rem;
+    }
+
+    .selected-members {
+        margin-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .member-chip {
+        background: rgba(59, 130, 246, 0.15);
+        color: #2563eb;
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #f97316);
+        color: white;
+        padding: 0.85rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-outline {
+        border: 1px solid var(--border);
+        padding: 0.85rem 1.5rem;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+
+    .btn-link {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.5rem 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>{% if draft %}Editar rascunho{% else %}Novo rascunho{% endif %}</h1>
+        <p>Monte uma composição preliminar para sua equipe e ajuste-a quando necessário.</p>
+    </div>
+    <a href="{% url 'teams:draft_list' %}" class="btn-outline">Voltar aos rascunhos</a>
+</section>
+
+<form method="post" class="draft-form">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="id_name">{{ form.name.label }}</label>
+        {{ form.name }}
+    </div>
+
+    <div class="form-group">
+        <label for="id_project">{{ form.project.label }}</label>
+        {{ form.project }}
+        <p class="form-help">Associe o rascunho a um projeto ativo para facilitar a alocação.</p>
+    </div>
+
+    <div class="form-group">
+        <label for="id_selected_members">{{ form.selected_members.label }}</label>
+        {{ form.selected_members }}
+        <p class="form-help">Utilize CTRL ou CMD para adicionar múltiplos colaboradores.</p>
+    </div>
+
+    <div class="form-group">
+        <label for="id_notes">{{ form.notes.label }}</label>
+        {{ form.notes }}
+    </div>
+
+    {% if selected_members %}
+        <div class="selected-members">
+            {% for member in selected_members %}
+                <span class="member-chip">{{ member.get_full_name|default:member.username }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn-primary">Salvar rascunho</button>
+        <div>
+            <button type="submit" name="save_and_finish" value="1" class="btn-link">Salvar e marcar como finalizado</button>
+            <a href="{% url 'teams:team_list' %}" class="btn-link">Criar time oficial</a>
+        </div>
+    </div>
+</form>
+{% endblock %}

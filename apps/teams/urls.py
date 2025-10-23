@@ -17,6 +17,9 @@ urlpatterns = [
     path('create/', views.team_create, name='create'),
     path('<int:pk>/edit/', views.team_edit, name='edit'),
     path('<int:pk>/members/', views.ajax_team_members, name='ajax-members'),
+    path('drafts/', views.draft_list, name='draft_list'),
+    path('drafts/new/', views.draft_edit, name='draft_new'),
+    path('drafts/<int:pk>/', views.draft_edit, name='draft_edit'),
     
     # API routes
     path('api/', include(router.urls)),

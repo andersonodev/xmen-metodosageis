@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil de {{ profile_user.full_name }} - AgileTeam{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+
+    .profile-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+    }
+
+    .avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: rgba(249, 115, 22, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--primary);
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .skill-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        background: rgba(59, 130, 246, 0.12);
+        color: #2563eb;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        margin: 0 0.5rem 0.5rem 0;
+    }
+
+    .list-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .list-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>{{ profile_user.full_name }}</h1>
+        <p>{{ profile_user.get_role_display }}</p>
+    </div>
+    {% if request.user == profile_user %}
+        <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Editar perfil</a>
+    {% endif %}
+</section>
+
+<div class="profile-grid">
+    <div class="profile-card">
+        <div class="avatar">{{ profile_user.first_name|default:profile_user.username|slice:":1" }}</div>
+        <p><strong>E-mail:</strong> {{ profile_user.email }}</p>
+        <p><strong>Departamento:</strong> {{ profile_user.department|default:"—" }}</p>
+        <p><strong>Bio:</strong> {{ profile_user.bio|default:"Adicione uma descrição" }}</p>
+    </div>
+
+    <div class="profile-card">
+        <h2>Competências</h2>
+        {% if user_skills %}
+            {% for user_skill in user_skills %}
+                <span class="skill-chip">{{ user_skill.skill.name }} · {{ user_skill.get_level_display }}</span>
+            {% endfor %}
+        {% else %}
+            <p>Nenhuma competência cadastrada.</p>
+        {% endif %}
+    </div>
+
+    <div class="profile-card">
+        <h2>Times</h2>
+        {% if team_memberships %}
+            {% for membership in team_memberships %}
+                <div class="list-item">
+                    <strong>{{ membership.team.name }}</strong><br>
+                    Papel: {{ membership.get_role_display }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Nenhum time ativo.</p>
+        {% endif %}
+    </div>
+
+    <div class="profile-card">
+        <h2>Projetos atuais</h2>
+        {% if active_projects %}
+            {% for project in active_projects %}
+                <div class="list-item">
+                    <strong>{{ project.name }}</strong><br>
+                    {{ project.get_status_display }} • entrega {{ project.end_date|date:"d/m/Y" }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Nenhum projeto vinculado.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

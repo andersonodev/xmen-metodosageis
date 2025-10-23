@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Team, TeamMembership, TeamInvitation
+
+from .models import Team, TeamCompositionDraft, TeamInvitation, TeamMembership
 
 
 class TeamMembershipInline(admin.TabularInline):
@@ -92,3 +93,11 @@ class TeamInvitationAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(TeamCompositionDraft)
+class TeamCompositionDraftAdmin(admin.ModelAdmin):
+    list_display = ['name', 'owner', 'project', 'is_submitted', 'updated_at']
+    list_filter = ['is_submitted', 'updated_at']
+    search_fields = ['name', 'owner__username', 'project__name']
+    readonly_fields = ['created_at', 'updated_at']

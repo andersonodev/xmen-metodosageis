@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Usuários - AgileTeam{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .user-table th, .user-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+    }
+
+    .user-table th {
+        background: var(--bg-primary);
+        font-weight: 600;
+    }
+
+    .user-table tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Gerenciar permissões</h1>
+        <p>Atualize o papel e o status de cada integrante da plataforma.</p>
+    </div>
+</section>
+
+<table class="user-table">
+    <thead>
+        <tr>
+            <th>Usuário</th>
+            <th>E-mail</th>
+            <th colspan="2">Permissões</th>
+            <th>Data de criação</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.email }}</td>
+                <td colspan="2">
+                    <form method="post" class="inline-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.pk }}">
+                        {{ forms_by_user[user.pk].role }}
+                        <label style="margin-left:1rem;">
+                            {{ forms_by_user[user.pk].is_active }} Ativo
+                        </label>
+                        <button type="submit" class="btn btn-secondary" style="margin-left:1rem;">Salvar</button>
+                    </form>
+                </td>
+                <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

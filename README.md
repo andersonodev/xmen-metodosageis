@@ -26,6 +26,11 @@ Sistema completo para automação de formação de equipes ágeis usando Django 
 - **Sistema de Notificações** personalizável
 - **Gestão de Sprints e OKRs**
 - **Integrações Externas** (CSV, APIs)
+- **Importação em lote** de colaboradores com validação de dados
+- **Editor avançado de competências** (técnicas e comportamentais)
+- **Rascunhos de composição de equipes** com salvamento incremental
+- **Dashboard com gráficos dinâmicos alimentados por Chart.js**
+- **Perfil completo do colaborador** com projetos e habilidades consolidadas
 
 ### 🤖 IA e Automação
 - Recomendação automática de membros para equipes
@@ -239,17 +244,17 @@ REDIS_URL=redis://redis:6379/0
 
 ### Executar Testes
 ```bash
+# Instalar dependências locais
+pip install -r requirements.txt
+
 # Todos os testes
-make test
+pytest
 
-# Com coverage
-make test-cov
+# Somente autenticação
+pytest apps/accounts/tests.py -v
 
-# Testes específicos
-pytest tests/test_accounts.py -v
-
-# Testes de integração
-pytest tests/integration/ -v
+# Cobertura
+pytest --cov=apps
 ```
 
 ### Estrutura de Testes
@@ -264,6 +269,13 @@ tests/
 ├── integration/               # Testes de integração
 └── fixtures/                  # Dados de teste
 ```
+
+## 📚 Documentação Complementar
+
+> ℹ️ **Nota:** Para manter o repositório compatível com ambientes que não aceitam binários, capturas de tela e PDFs devem ser armazenados externamente.
+
+- Manual de uso com orientações de captura: [`docs/manual_usuario.md`](docs/manual_usuario.md)
+- Guia rápido das telas principais: [`docs/README_RAPIDO.md`](docs/README_RAPIDO.md)
 
 ## 🔌 WebSockets
 

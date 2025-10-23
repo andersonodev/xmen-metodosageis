@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Buscar Colaboradores - AgileTeam{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-layout {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: minmax(0, 280px) 1fr;
+    }
+
+    .filter-card, .results-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .result-item {
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 0;
+    }
+
+    .result-item:last-child {
+        border-bottom: none;
+    }
+
+    .skill-tag {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(249, 115, 22, 0.1);
+        color: var(--primary);
+        padding: 0.35rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        margin: 0 0.4rem 0.4rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Busca por Competências</h1>
+        <p>Selecione habilidades e encontre colaboradores alinhados ao perfil desejado.</p>
+    </div>
+</section>
+
+<div class="search-layout">
+    <form method="get" class="filter-card">
+        <h2>Filtros</h2>
+        <div class="form-group">
+            <label for="skill-select">Competências</label>
+            <select id="skill-select" name="skill" multiple class="form-multiselect">
+                {% for skill in available_skills %}
+                    <option value="{{ skill.name }}" {% if skill.name in selected_skills %}selected{% endif %}>{{ skill.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="min_level">Nível mínimo</label>
+            <input type="number" min="1" max="5" name="min_level" id="min_level" class="form-input" value="{{ min_level }}">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Buscar</button>
+    </form>
+
+    <div class="results-card">
+        <h2>Resultados</h2>
+        {% if results %}
+            {% for item in results %}
+                <div class="result-item">
+                    <h3>{{ item.user.full_name }}</h3>
+                    <p>{{ item.user.email }}</p>
+                    {% for skill in item.skills %}
+                        <span class="skill-tag">{{ skill.name }} · nível {{ skill.level }}</span>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Nenhum colaborador encontrado. Ajuste os filtros e tente novamente.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

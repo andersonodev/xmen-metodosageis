@@ -1,16 +1,18 @@
-from rest_framework import viewsets, permissions, status
+from django.contrib.auth.decorators import login_required
+from django.db import models
+from django.shortcuts import render
+from django.utils import timezone
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from django.db import models
+
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from .models import MetricSnapshot, ProjectReport, DashboardWidget
-from .serializers import MetricSnapshotSerializer, ProjectReportSerializer, DashboardWidgetSerializer
+from .models import DashboardWidget, MetricSnapshot, ProjectReport
+from .serializers import DashboardWidgetSerializer, MetricSnapshotSerializer, ProjectReportSerializer
 from apps.accounts.models import User
 from apps.projects.models import Project
+from apps.skills.models import UserSkill
 from apps.tasks.models import Task
 
 
@@ -135,6 +137,15 @@ def main_dashboard(request):
         }
     ]
     
+    project_status_breakdown = {
+        label: Project.objects.filter(status=code).count()
+        for code, label in Project.STATUS_CHOICES
+    }
+    skill_level_distribution = {
+        str(level): UserSkill.objects.filter(level=level).count()
+        for level, _ in UserSkill.LEVEL_CHOICES
+    }
+
     context = {
         'total_projects': total_projects,
         'active_projects': active_projects,
@@ -145,7 +156,9 @@ def main_dashboard(request):
         'recent_projects': recent_projects,
         'priority_tasks': priority_tasks,
         'recent_activities': recent_activities,
+        'project_status_breakdown': project_status_breakdown,
+        'skill_level_distribution': skill_level_distribution,
     }
-    
-    return render(request, 'dashboards/list.html', context)
+
+    return render(request, 'dashboards/main.html', context)
 

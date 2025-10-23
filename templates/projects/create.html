@@ -77,6 +77,40 @@
         font-family: inherit;
     }
 
+    .requirements-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .requirement-item {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+
+    .requirement-item label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 0.35rem;
+        display: block;
+    }
+
+    .requirement-delete {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .requirement-delete label {
+        margin: 0;
+        font-weight: 500;
+    }
+
     .member-selector {
         border: 1px solid var(--border);
         border-radius: 8px;
@@ -412,6 +446,45 @@
                     <!-- Membros selecionados aparecerão aqui -->
                 </div>
             </div>
+        </div>
+
+        <!-- Skill Requirements -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-star"></i>
+                Competências Necessárias
+            </h2>
+            <p class="page-subtitle" style="text-align: left; margin-bottom: 1rem;">
+                Determine quais habilidades técnicas e comportamentais são essenciais para o sucesso do projeto.
+            </p>
+            {% if requirement_formset %}
+                {{ requirement_formset.management_form }}
+                <div class="requirements-grid">
+                    {% for requirement_form in requirement_formset %}
+                        <div class="requirement-item">
+                            <div>
+                                {{ requirement_form.skill.label_tag }}
+                                {{ requirement_form.skill }}
+                            </div>
+                            <div>
+                                {{ requirement_form.min_level.label_tag }}
+                                {{ requirement_form.min_level }}
+                            </div>
+                            <div class="requirement-delete">
+                                {{ requirement_form.is_mandatory }}
+                                {{ requirement_form.is_mandatory.label_tag }}
+                                {% if requirement_form.DELETE %}
+                                    <label class="form-check-label" for="{{ requirement_form.DELETE.id_for_label }}">
+                                        Remover
+                                    </label>
+                                    {{ requirement_form.DELETE }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <small class="form-help">Deixe linhas em branco se não precisar de mais competências.</small>
+            {% endif %}
         </div>
 
         <!-- Form Actions -->

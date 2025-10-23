@@ -3,181 +3,128 @@
 {% block title %}Cadastro - Sistema Ágil{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card card">
-        <!-- Header -->
-        <div class="text-center mb-6">
-            <div class="logo mb-4">
-                <i class="fas fa-users-cog"></i>
-                Sistema Ágil
-            </div>
-            <h1 class="text-2xl font-bold mb-2">Crie sua conta</h1>
-            <p class="text-secondary">Junte-se à nossa plataforma de times ágeis</p>
-        </div>
+<div class="auth-container register-page">
+    <div class="auth-background">
+        <span class="auth-orb orb-1"></span>
+        <span class="auth-orb orb-2"></span>
+        <span class="auth-orb orb-3"></span>
+        <span class="auth-orb orb-4"></span>
+    </div>
 
-        <!-- Form -->
-        <form method="post" id="registerForm" novalidate>
-            {% csrf_token %}
-            
-            <!-- Name Fields Row -->
-            <div class="form-row">
-                <!-- First Name -->
-                <div class="form-group">
-                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
-                        {{ form.first_name.label }}
-                    </label>
-                    {{ form.first_name }}
-                    {% if form.first_name.errors %}
-                        <div class="form-error">
-                            {{ form.first_name.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Last Name -->
-                <div class="form-group">
-                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
-                        {{ form.last_name.label }}
-                    </label>
-                    {{ form.last_name }}
-                    {% if form.last_name.errors %}
-                        <div class="form-error">
-                            {{ form.last_name.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
+    <div class="auth-shell">
+        <div class="auth-card register-card">
+            <div class="auth-header">
+                <h1>Cadastro</h1>
+                <p>Facilitador de times ágeis e promotor de inovação organizacional</p>
             </div>
 
-            <!-- Email Field -->
-            <div class="form-group">
-                <label for="{{ form.email.id_for_label }}" class="form-label">
-                    {{ form.email.label }}
-                </label>
-                {{ form.email }}
-                {% if form.email.errors %}
-                    <div class="form-error">
-                        {{ form.email.errors.0 }}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Username Field -->
-            <div class="form-group">
-                <label for="{{ form.username.id_for_label }}" class="form-label">
-                    {{ form.username.label }}
-                </label>
-                {{ form.username }}
-                {% if form.username.help_text %}
-                    <div class="form-help">{{ form.username.help_text }}</div>
-                {% endif %}
-                {% if form.username.errors %}
-                    <div class="form-error">
-                        {{ form.username.errors.0 }}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Password Fields Row -->
-            <div class="form-row">
-                <!-- Password -->
-                <div class="form-group">
-                    <label for="{{ form.password1.id_for_label }}" class="form-label">
-                        {{ form.password1.label }}
-                    </label>
-                    <div class="password-field">
-                        {{ form.password1 }}
-                        <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password1.id_for_label }}', 'toggleIcon1')">
-                            <i class="fas fa-eye" id="toggleIcon1"></i>
-                        </button>
-                    </div>
-                    {% if form.password1.errors %}
-                        <div class="form-error">
-                            {{ form.password1.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Confirm Password -->
-                <div class="form-group">
-                    <label for="{{ form.password2.id_for_label }}" class="form-label">
-                        {{ form.password2.label }}
-                    </label>
-                    <div class="password-field">
-                        {{ form.password2 }}
-                        <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password2.id_for_label }}', 'toggleIcon2')">
-                            <i class="fas fa-eye" id="toggleIcon2"></i>
-                        </button>
-                    </div>
-                    {% if form.password2.errors %}
-                        <div class="form-error">
-                            {{ form.password2.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Role Field -->
-            <div class="form-group">
-                <label for="{{ form.role.id_for_label }}" class="form-label">
-                    {{ form.role.label }}
-                </label>
-                {{ form.role }}
-                {% if form.role.errors %}
-                    <div class="form-error">
-                        {{ form.role.errors.0 }}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Professional Info Row -->
-            <div class="form-row">
-                <!-- Position -->
-                <div class="form-group">
-                    <label for="{{ form.position.id_for_label }}" class="form-label">
-                        {{ form.position.label }}
-                    </label>
-                    {{ form.position }}
-                    {% if form.position.errors %}
-                        <div class="form-error">
-                            {{ form.position.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Department -->
-                <div class="form-group">
-                    <label for="{{ form.department.id_for_label }}" class="form-label">
-                        {{ form.department.label }}
-                    </label>
-                    {{ form.department }}
-                    {% if form.department.errors %}
-                        <div class="form-error">
-                            {{ form.department.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Non-field errors -->
             {% if form.non_field_errors %}
-                <div class="alert alert-error">
+                <div class="alert alert-error mb-6">
                     {{ form.non_field_errors.0 }}
                 </div>
             {% endif %}
 
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary btn-full btn-lg" id="registerBtn">
-                <i class="fas fa-user-plus"></i>
-                Criar conta
-            </button>
-        </form>
+            <form method="post" id="registerForm" novalidate>
+                {% csrf_token %}
 
-        <!-- Footer -->
-        <div class="text-center mt-6">
-            <p class="text-secondary text-sm">
-                Já tem uma conta?
-                <a href="{% url 'accounts:web_login' %}" class="link">Faça login aqui</a>
-            </p>
+                <div class="form-grid">
+                    <div class="form-field form-field--full">
+                        <label>Nome completo</label>
+                        <div class="split-inputs">
+                            <div class="split-input">
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="form-error">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="split-input">
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="form-error">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.email.id_for_label }}">E-mail</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="form-error">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.username.id_for_label }}">Nome de usuário</label>
+                        {{ form.username }}
+                        {% if form.username.help_text %}
+                            <div class="form-help">{{ form.username.help_text }}</div>
+                        {% endif %}
+                        {% if form.username.errors %}
+                            <div class="form-error">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.password1.id_for_label }}">Senha</label>
+                        <div class="password-field">
+                            {{ form.password1 }}
+                            <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password1.id_for_label }}', 'toggleIcon1')">
+                                <i class="fas fa-eye" id="toggleIcon1"></i>
+                            </button>
+                        </div>
+                        {% if form.password1.errors %}
+                            <div class="form-error">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.password2.id_for_label }}">Confirmar senha</label>
+                        <div class="password-field">
+                            {{ form.password2 }}
+                            <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password2.id_for_label }}', 'toggleIcon2')">
+                                <i class="fas fa-eye" id="toggleIcon2"></i>
+                            </button>
+                        </div>
+                        {% if form.password2.errors %}
+                            <div class="form-error">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.role.id_for_label }}">Função preferida em equipe</label>
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                            <div class="form-error">{{ form.role.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.position.id_for_label }}">Cargo atual</label>
+                        {{ form.position }}
+                        {% if form.position.errors %}
+                            <div class="form-error">{{ form.position.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.department.id_for_label }}">Setor / Departamento</label>
+                        {{ form.department }}
+                        {% if form.department.errors %}
+                            <div class="form-error">{{ form.department.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg" id="registerBtn">
+                    Criar conta
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <span>Já possui uma conta?</span>
+                <a href="{% url 'accounts:web_login' %}">Entrar</a>
+            </div>
         </div>
     </div>
 </div>
@@ -185,178 +132,323 @@
 
 {% block extra_css %}
 <style>
-    .form-row {
+    .auth-container.register-page {
+        background: radial-gradient(circle at 15% 20%, rgba(255, 140, 66, 0.25), transparent 60%),
+                    radial-gradient(circle at 85% 15%, rgba(255, 188, 124, 0.18), transparent 55%),
+                    linear-gradient(180deg, #1a1a1e 0%, #101014 100%);
+        overflow: hidden;
+    }
+
+    .auth-container.register-page .auth-card {
+        max-width: 900px;
+        width: 100%;
+        background: rgba(18, 18, 24, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        padding: 3.25rem 3.5rem;
+        box-shadow: 0 28px 52px rgba(0, 0, 0, 0.45);
+        position: relative;
+        z-index: 2;
+    }
+
+    .auth-shell {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem;
+    }
+
+    .auth-background {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+
+    .auth-orb {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.55;
+    }
+
+    .auth-orb.orb-1 {
+        width: 360px;
+        height: 360px;
+        top: -120px;
+        left: -160px;
+        background: radial-gradient(circle, rgba(255, 111, 0, 0.45) 0%, rgba(255, 107, 0, 0) 75%);
+    }
+
+    .auth-orb.orb-2 {
+        width: 260px;
+        height: 260px;
+        bottom: -120px;
+        right: -90px;
+        background: radial-gradient(circle, rgba(255, 180, 105, 0.35) 0%, rgba(255, 107, 0, 0) 80%);
+    }
+
+    .auth-orb.orb-3 {
+        width: 140px;
+        height: 140px;
+        top: 25%;
+        right: 18%;
+        background: radial-gradient(circle, rgba(255, 107, 0, 0.35) 0%, rgba(255, 107, 0, 0) 80%);
+    }
+
+    .auth-orb.orb-4 {
+        width: 120px;
+        height: 120px;
+        bottom: 18%;
+        left: 32%;
+        background: radial-gradient(circle, rgba(255, 221, 191, 0.32) 0%, rgba(255, 107, 0, 0) 85%);
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2.75rem;
+    }
+
+    .auth-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.75rem;
+    }
+
+    .auth-header p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    .form-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.75rem 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .form-field--full {
+        grid-column: span 2;
+    }
+
+    .form-field label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.85);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .split-inputs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1rem;
-        margin-bottom: 2rem;
     }
 
-    .form-group {
-        margin-bottom: 1.5rem;
+    .split-input {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
     }
 
-    .form-row .form-group {
-        margin-bottom: 1rem;
+    .form-field .form-input,
+    .form-field .form-select {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.75rem;
+        padding: 1rem 1.1rem;
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    /* Espaçamento especial para o primeiro campo de senha que tem o indicador */
-    .form-row .form-group:first-child {
-        margin-bottom: 2rem;
+    .form-field .form-input:focus,
+    .form-field .form-select:focus {
+        border-color: rgba(255, 107, 0, 0.65);
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.18);
+        outline: none;
+    }
+
+    .form-field .form-select {
+        appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.5) 50%),
+                          linear-gradient(135deg, rgba(255, 255, 255, 0.5) 50%, transparent 50%);
+        background-position: calc(100% - 20px) calc(1.1rem), calc(100% - 15px) calc(1.1rem);
+        background-size: 6px 6px;
+        background-repeat: no-repeat;
+        padding-right: 2.5rem;
     }
 
     .password-field {
         position: relative;
         display: block;
-        height: 54px; /* Altura fixa para evitar mudanças de layout */
-        margin-bottom: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.75rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        padding-right: 3.25rem;
+    }
+
+    .password-field:focus-within {
+        border-color: rgba(255, 107, 0, 0.65);
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.18);
     }
 
     .password-field .form-input {
-        padding-right: 56px !important; /* Mais espaço para o toggle button */
-        width: 100%;
-        height: 54px; /* Altura fixa */
-        box-sizing: border-box;
+        background: transparent;
+        border: none;
+        padding: 1rem 1.1rem;
     }
 
     .password-toggle {
         position: absolute;
-        right: 20px;
         top: 50%;
+        right: 1rem;
         transform: translateY(-50%);
-        width: 20px;
-        height: 20px;
         background: none;
         border: none;
-        color: var(--text-inactive);
+        color: var(--text-secondary);
         cursor: pointer;
-        font-size: 0.95rem;
-        padding: 8px;
-        margin: 0;
-        transition: all 0.3s ease;
+        font-size: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10;
-        border-radius: 6px;
-        line-height: 1;
-        flex-shrink: 0;
+        transition: color 0.2s ease;
     }
 
     .password-toggle:hover {
         color: var(--primary);
-        background-color: rgba(255, 107, 0, 0.1);
-    }
-
-    .password-toggle:active {
-        transform: scale(0.95);
     }
 
     .form-help {
         font-size: 0.8rem;
-        color: var(--text-inactive);
-        margin-top: 0.25rem;
-        margin-bottom: 0.5rem;
+        color: rgba(255, 255, 255, 0.55);
     }
 
-    .auth-card {
-        animation: slideUp 0.5s ease-out;
-        max-width: 600px;
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Responsive */
-    @media (max-width: 640px) {
-        .form-row {
-            grid-template-columns: 1fr;
-            gap: 0;
-        }
-        
-        .auth-card {
-            padding: 1.5rem;
-        }
-
-        .form-row .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-row .form-group:last-child {
-            margin-bottom: 0.5rem;
-        }
-    }
-
-    /* Focus states */
-    .form-input:focus + .password-toggle {
-        color: var(--primary);
-    }
-
-    /* Ensure proper alignment in grid layouts */
-    .form-row .password-field {
-        width: 100%;
-        position: relative;
-    }
-
-    .form-row .password-field .form-input {
-        padding-right: 56px !important; /* Mais espaço para o toggle button */
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* Password strength indicator */
     .password-strength {
-        margin-top: 0.75rem;
-        margin-bottom: 2rem;
         display: flex;
-        gap: 0.25rem;
-        clear: both;
-    }
-
-    .strength-text {
-        margin-top: 0.5rem;
-        margin-bottom: 1.5rem;
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        clear: both;
+        gap: 0.35rem;
+        margin: 0.75rem 0 0.35rem;
     }
 
     .strength-bar {
-        height: 3px;
         flex: 1;
-        background-color: var(--border);
-        border-radius: 2px;
-        transition: background-color 0.3s ease;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        transition: background 0.2s ease;
     }
 
     .strength-bar.active {
-        background-color: var(--primary);
+        background: var(--primary);
     }
 
     .strength-bar.weak {
-        background-color: var(--error);
+        background: var(--error);
     }
 
     .strength-bar.medium {
-        background-color: var(--warning);
+        background: var(--warning);
     }
 
     .strength-bar.strong {
-        background-color: var(--success);
+        background: var(--success);
     }
 
     .strength-text {
         font-size: 0.8rem;
-        margin-top: 0.25rem;
+        color: rgba(255, 255, 255, 0.65);
         font-weight: 500;
+    }
+
+    .btn.btn-primary {
+        border-radius: 999px;
+        font-size: 1.1rem;
+        padding: 1.05rem 1.5rem;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    .auth-footer {
+        margin-top: 2.5rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+    }
+
+    .auth-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 0.35rem;
+    }
+
+    .auth-footer a:hover {
+        color: var(--hover);
+        text-decoration: underline;
+    }
+
+    .form-error {
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 960px) {
+        .auth-container.register-page .auth-card {
+            padding: 2.75rem 2.5rem;
+        }
+
+        .form-grid {
+            gap: 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .auth-shell {
+            padding: 2rem 1.25rem;
+        }
+
+        .auth-container.register-page .auth-card {
+            padding: 2.25rem 1.75rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-field--full {
+            grid-column: span 1;
+        }
+
+        .split-inputs {
+            grid-template-columns: 1fr;
+        }
+
+        .auth-header h1 {
+            font-size: 2.2rem;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .auth-container.register-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .auth-container.register-page .auth-card {
+            padding: 2rem 1.25rem;
+        }
+
+        .auth-header p {
+            font-size: 0.9rem;
+        }
     }
 </style>
 {% endblock %}
@@ -366,7 +458,7 @@
     function togglePassword(fieldId, iconId) {
         const field = document.getElementById(fieldId);
         const icon = document.getElementById(iconId);
-        
+
         if (field.type === 'password') {
             field.type = 'text';
             icon.className = 'fas fa-eye-slash';
@@ -385,13 +477,13 @@
             /[0-9]/.test(password),
             /[^a-zA-Z0-9]/.test(password)
         ];
-        
+
         strength = checks.filter(Boolean).length;
         return {
             score: strength,
-            text: strength < 2 ? 'Fraca' : 
+            text: strength < 2 ? 'Fraca' :
                   strength < 4 ? 'Média' : 'Forte',
-            class: strength < 2 ? 'weak' : 
+            class: strength < 2 ? 'weak' :
                    strength < 4 ? 'medium' : 'strong'
         };
     }
@@ -400,14 +492,14 @@
         const strength = checkPasswordStrength(password);
         const bars = container.querySelectorAll('.strength-bar');
         const text = container.querySelector('.strength-text');
-        
+
         bars.forEach((bar, index) => {
             bar.className = 'strength-bar';
             if (index < strength.score) {
                 bar.classList.add('active', strength.class);
             }
         });
-        
+
         if (text) {
             text.textContent = `Força da senha: ${strength.text}`;
             text.className = `strength-text ${strength.class}`;
@@ -418,9 +510,10 @@
         const form = document.getElementById('registerForm');
         const submitBtn = document.getElementById('registerBtn');
         const password1Field = document.querySelector('[name="password1"]');
-        
+
         // Add password strength indicator
         if (password1Field) {
+            const wrapper = password1Field.closest('.password-field') || password1Field.parentNode;
             const strengthContainer = document.createElement('div');
             strengthContainer.className = 'password-strength';
             strengthContainer.innerHTML = `
@@ -430,74 +523,74 @@
                 <div class="strength-bar"></div>
                 <div class="strength-bar"></div>
             `;
-            
+
             const strengthText = document.createElement('div');
             strengthText.className = 'strength-text';
-            
-            password1Field.parentNode.appendChild(strengthContainer);
-            password1Field.parentNode.appendChild(strengthText);
-            
+
+            wrapper.appendChild(strengthContainer);
+            wrapper.appendChild(strengthText);
+
             password1Field.addEventListener('input', function() {
-                updatePasswordStrength(this.value, strengthContainer.parentNode);
+                updatePasswordStrength(this.value, wrapper);
             });
         }
-        
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             // Clear previous errors
             document.querySelectorAll('.form-error').forEach(error => error.remove());
             document.querySelectorAll('.form-input.error').forEach(input => input.classList.remove('error'));
-            
+
             // Get form data
             const formData = new FormData(form);
             let hasError = false;
-            
+
             // Basic validation
             const requiredFields = ['first_name', 'last_name', 'email', 'username', 'password1', 'password2'];
-            
+
             requiredFields.forEach(fieldName => {
                 const field = form.querySelector(`[name="${fieldName}"]`);
-                const value = formData.get(fieldName).trim();
-                
+                const value = (formData.get(fieldName) || '').trim();
+
                 if (!value) {
                     showFieldError(field, 'Este campo é obrigatório.');
                     hasError = true;
                 }
             });
-            
+
             // Email validation
             const email = formData.get('email');
             if (email && !validateEmail(email)) {
                 showFieldError(form.querySelector('[name="email"]'), 'Digite um e-mail válido.');
                 hasError = true;
             }
-            
+
             // Password validation
             const password1 = formData.get('password1');
             const password2 = formData.get('password2');
-            
+
             if (password1 && !validatePassword(password1)) {
                 showFieldError(form.querySelector('[name="password1"]'), 'A senha deve ter pelo menos 8 caracteres.');
                 hasError = true;
             }
-            
+
             if (password1 && password2 && password1 !== password2) {
                 showFieldError(form.querySelector('[name="password2"]'), 'As senhas não coincidem.');
                 hasError = true;
             }
-            
+
             if (!hasError) {
                 // Show loading state
                 const originalText = showLoading(submitBtn);
-                
+
                 // Submit form
                 setTimeout(() => {
                     form.submit();
                 }, 100);
             }
         });
-        
+
         // Auto-focus first field
         const firstInput = form.querySelector('.form-input');
         if (firstInput) {

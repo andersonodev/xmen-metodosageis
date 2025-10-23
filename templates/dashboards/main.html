@@ -209,6 +209,20 @@
         margin: 0;
     }
 
+    .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .chart-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
     .activity-item {
         display: flex;
         align-items: center;
@@ -398,6 +412,20 @@
     </div>
 </div>
 
+{{ project_status_breakdown|json_script:"project-status-data" }}
+{{ skill_level_distribution|json_script:"skill-level-data" }}
+
+<section class="chart-grid">
+    <div class="chart-card">
+        <h2>Status dos Projetos</h2>
+        <canvas id="projectStatusChart" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+        <h2>Nível das Competências</h2>
+        <canvas id="skillLevelChart" height="220"></canvas>
+    </div>
+</section>
+
 <!-- Recent Activity -->
 <div class="section-card" style="margin-top: 1.5rem;">
     <h2>Atividade Recente</h2>
@@ -437,9 +465,49 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Animate stats on load
+        const projectStatusData = JSON.parse(document.getElementById('project-status-data').textContent);
+        const skillLevelData = JSON.parse(document.getElementById('skill-level-data').textContent);
+
+        new Chart(document.getElementById('projectStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(projectStatusData),
+                datasets: [{
+                    data: Object.values(projectStatusData),
+                    backgroundColor: ['#f97316', '#22c55e', '#6366f1', '#94a3b8', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('skillLevelChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(skillLevelData),
+                datasets: [{
+                    label: 'Quantidade de habilidades',
+                    data: Object.values(skillLevelData),
+                    backgroundColor: '#3b82f6'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+
         const statNumbers = document.querySelectorAll('.stat-content h3');
         statNumbers.forEach(stat => {
             const finalValue = parseInt(stat.textContent);
@@ -458,13 +526,12 @@
             }
         });
 
-        // Add hover effects to cards
         const cards = document.querySelectorAll('.stat-card, .quick-action');
         cards.forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-2px)';
             });
-            
+
             card.addEventListener('mouseleave', function() {
                 this.style.transform = 'translateY(0)';
             });

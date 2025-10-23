@@ -5,6 +5,7 @@ Script para testar as views corrigidas diretamente
 import os
 import sys
 import django
+import pytest
 
 # Configurar Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'xmen_agileteam.settings')
@@ -20,15 +21,21 @@ from apps.integrations.views import integration_list
 
 User = get_user_model()
 
+@pytest.mark.django_db
 def test_views():
     """Testar todas as views corrigidas"""
     # Criar request factory e usuário de teste
     factory = RequestFactory()
     user = User.objects.first()
-    
+
     if not user:
-        print("❌ Nenhum usuário encontrado para testar")
-        return
+        user = User.objects.create_user(
+            username="testviewer",
+            email="viewer@example.com",
+            password="temporary-pass-123",
+            first_name="Test",
+            last_name="Viewer",
+        )
     
     print(f"🧪 Testando views com usuário: {user.username}")
     
