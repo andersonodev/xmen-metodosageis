@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Competências - AgileTeam{% endblock %}
+
+{% block extra_css %}
+<style>
+    .competency-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .competency-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.75rem;
+        box-shadow: 0 24px 40px rgba(15, 23, 42, 0.05);
+    }
+
+    .competency-card h2 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .competency-card p {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+    }
+
+    .form-multiselect {
+        width: 100%;
+        min-height: 200px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: 0.75rem;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    .skills-summary {
+        margin-top: 2rem;
+    }
+
+    .skills-summary h3 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .skill-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(249, 115, 22, 0.08);
+        color: var(--primary);
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        margin: 0 0.5rem 0.5rem 0;
+    }
+
+    .competency-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-secondary {
+        border: 1px solid var(--border);
+        padding: 0.85rem 1.5rem;
+        border-radius: 10px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #f97316);
+        border: none;
+        color: white;
+        padding: 0.9rem 2.2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 18px 40px rgba(249, 115, 22, 0.25);
+        cursor: pointer;
+    }
+
+    .no-skills {
+        background: rgba(15, 23, 42, 0.03);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        color: var(--text-secondary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Atualizar Competências</h1>
+        <p>Mantenha seu perfil sempre alinhado com as habilidades técnicas e comportamentais que o destacam.</p>
+    </div>
+    <a class="btn-secondary" href="{% url 'accounts:profile' %}">
+        <i class="bi bi-arrow-left"></i> Voltar para o perfil
+    </a>
+</section>
+
+<form method="post" class="competency-form">
+    {% csrf_token %}
+    <div class="competency-wrapper">
+        <div class="competency-card">
+            <h2>{{ form.technical_skills.label }}</h2>
+            <p>Selecione as habilidades técnicas em que você possui domínio. Utilize CTRL ou CMD para múltipla seleção.</p>
+            {{ form.technical_skills }}
+        </div>
+        <div class="competency-card">
+            <h2>{{ form.behavioral_skills.label }}</h2>
+            <p>Escolha competências comportamentais que demonstram sua atuação em equipe e liderança.</p>
+            {{ form.behavioral_skills }}
+        </div>
+    </div>
+
+    <div class="competency-actions">
+        <a class="btn-secondary" href="{% url 'skills:list' %}">Cancelar</a>
+        <button type="submit" class="btn-primary">Salvar Competências</button>
+    </div>
+</form>
+
+<section class="skills-summary">
+    <h3>Competências atuais</h3>
+    {% if has_skills %}
+        {% for user_skill in user_skills %}
+            <span class="skill-chip">
+                {{ user_skill.skill.name }} · Nível {{ user_skill.get_level_display }}
+            </span>
+        {% endfor %}
+    {% else %}
+        <div class="no-skills">
+            Nenhuma competência cadastrada ainda. Use o formulário acima para começar.
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

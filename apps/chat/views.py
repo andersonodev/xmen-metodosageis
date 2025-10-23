@@ -97,6 +97,13 @@ def chat_home(request):
 
 
 @login_required
+def chat_rooms(request):
+    """Compat wrapper para manter retrocompatibilidade com testes legados."""
+
+    return chat_home(request)
+
+
+@login_required
 def chat_room(request, room_id):
     """Entrar em uma sala de chat específica."""
     

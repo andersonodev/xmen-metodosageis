@@ -1,8 +1,16 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    ProjectViewSet, SprintViewSet, OKRViewSet, KeyResultViewSet,
-    project_list, project_detail, project_create, project_edit
+    ProjectViewSet,
+    SprintViewSet,
+    OKRViewSet,
+    KeyResultViewSet,
+    project_list,
+    project_detail,
+    project_create,
+    project_edit,
+    active_projects_view,
+    report_generator,
 )
 
 app_name = 'projects'
@@ -19,6 +27,8 @@ urlpatterns = [
     path('create/', project_create, name='create'),
     path('<int:pk>/', project_detail, name='detail'),
     path('<int:pk>/edit/', project_edit, name='edit'),
+    path('ativos/', active_projects_view, name='active'),
+    path('relatorios/', report_generator, name='report_generator'),
     
     # API endpoints
     path('', include(router.urls)),

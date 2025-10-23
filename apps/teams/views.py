@@ -1,17 +1,19 @@
-from rest_framework import viewsets, permissions, status, generics
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import models
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.utils import timezone
-from django.db import models
-from django.http import JsonResponse
+
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from .models import Team, TeamMembership, TeamInvitation
-from .serializers import TeamSerializer, TeamMembershipSerializer, TeamInvitationSerializer
+from .forms import TeamCompositionDraftForm
+from .models import Team, TeamCompositionDraft, TeamInvitation, TeamMembership
+from .serializers import TeamInvitationSerializer, TeamMembershipSerializer, TeamSerializer
 from apps.accounts.models import User
 from apps.accounts.serializers import UserSerializer
 
@@ -413,7 +415,44 @@ def team_list(request):
     return render(request, 'teams/list.html', context)
 
 
-@login_required  
+@login_required
+def draft_list(request):
+    drafts = (
+        TeamCompositionDraft.objects.filter(owner=request.user)
+        .select_related('project')
+        .order_by('-updated_at')
+    )
+
+    return render(request, 'teams/drafts.html', {'drafts': drafts})
+
+
+@login_required
+def draft_edit(request, pk=None):
+    draft = get_object_or_404(TeamCompositionDraft, pk=pk, owner=request.user) if pk else None
+    form = TeamCompositionDraftForm(owner=request.user, data=request.POST or None, instance=draft)
+
+    if request.method == 'POST' and form.is_valid():
+        draft = form.save()
+        messages.success(request, 'Rascunho de composição salvo com sucesso!')
+        if 'save_and_finish' in request.POST:
+            draft.is_submitted = True
+            draft.save(update_fields=['is_submitted'])
+            messages.info(request, 'Rascunho marcado como finalizado. Não esqueça de criar o time oficial.')
+        return redirect('teams:draft_list')
+
+    selected_members = []
+    if draft:
+        selected_members = User.objects.filter(id__in=draft.selected_member_ids())
+
+    context = {
+        'form': form,
+        'draft': draft,
+        'selected_members': selected_members,
+    }
+    return render(request, 'teams/draft_form.html', context)
+
+
+@login_required
 def team_detail(request, pk):
     """Detalhes de um time específico."""
     team = get_object_or_404(Team, pk=pk)

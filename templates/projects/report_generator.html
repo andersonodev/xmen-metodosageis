@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Gerar Relatório - AgileTeam{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-wrapper {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: minmax(0, 360px) 1fr;
+    }
+
+    .filter-card, .preview-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.75rem;
+        height: fit-content;
+    }
+
+    .filter-card h2, .preview-card h2 {
+        margin-top: 0;
+        font-size: 1.3rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.4rem;
+        color: var(--text-secondary);
+    }
+
+    .form-control {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        padding: 0.75rem 1rem;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    .preview-list {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0 0 0;
+    }
+
+    .preview-item {
+        padding: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+    }
+
+    .preview-item h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Gerar Relatório Personalizado</h1>
+    <p>Selecione os parâmetros e visualize instantaneamente os dados mais relevantes.</p>
+</div>
+
+<div class="report-wrapper">
+    <form method="post" class="filter-card">
+        {% csrf_token %}
+        <h2>Parâmetros</h2>
+        <div class="form-group">
+            {{ form.start_date.label_tag }}
+            {{ form.start_date }}
+        </div>
+        <div class="form-group">
+            {{ form.end_date.label_tag }}
+            {{ form.end_date }}
+        </div>
+        <div class="form-group">
+            {{ form.team.label_tag }}
+            {{ form.team }}
+        </div>
+        <div class="form-group">
+            <label class="form-check">
+                {{ form.include_completed }} Incluir projetos concluídos
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Gerar prévia</button>
+    </form>
+
+    <div class="preview-card">
+        <h2>Prévia</h2>
+        {% if preview %}
+            <p><strong>Total de projetos:</strong> {{ preview.total_projects }}</p>
+            <p><strong>Horas estimadas:</strong> {{ preview.total_hours }}</p>
+            <ul class="preview-list">
+                {% for project in preview.projects %}
+                    <li class="preview-item">
+                        <h3>{{ project.name }}</h3>
+                        <p>{{ project.description|truncatewords:20 }}</p>
+                        <span>Status: {{ project.get_status_display }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Preencha os filtros ao lado para visualizar uma prévia dos dados que farão parte do relatório.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

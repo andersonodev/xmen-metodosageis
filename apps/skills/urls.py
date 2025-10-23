@@ -13,6 +13,7 @@ urlpatterns = [
     # Web views
     path('', views.skill_list, name='list'),
     path('create/', views.skill_create, name='create'),
+    path('edit/', views.edit_competencies, name='edit'),
     path('<int:pk>/', views.skill_detail, name='detail'),
     path('<int:skill_id>/add/', views.add_skill, name='add'),
     path('add-user-skill/', views.add_user_skill, name='add_user_skill'),

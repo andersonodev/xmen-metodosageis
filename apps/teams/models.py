@@ -143,3 +143,40 @@ class TeamInvitation(models.Model):
     
     def __str__(self):
         return f"Convite: {self.invited_user.username} para {self.team.name}"
+
+
+class TeamCompositionDraft(models.Model):
+    """Persist intermediate team compositions before they are formalised."""
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="composition_drafts",
+    )
+    project = models.ForeignKey(
+        'projects.Project',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="composition_drafts",
+    )
+    name = models.CharField(max_length=120)
+    notes = models.TextField(blank=True)
+    data = models.JSONField(default=dict, blank=True)
+    is_submitted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "team_composition_drafts"
+        ordering = ["-updated_at"]
+        verbose_name = "Rascunho de Composição"
+        verbose_name_plural = "Rascunhos de Composição"
+
+    def __str__(self) -> str:  # pragma: no cover - representational
+        return f"{self.name} ({self.owner})"
+
+    def selected_member_ids(self) -> list[int]:
+        if isinstance(self.data, dict):
+            return self.data.get("members", [])
+        return []

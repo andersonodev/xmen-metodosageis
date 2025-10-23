@@ -3,87 +3,86 @@
 {% block title %}Login - Sistema Ágil{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card card">
-        <!-- Header -->
-        <div class="text-center mb-6">
-            <div class="logo mb-4">
-                <i class="fas fa-users-cog"></i>
-                Sistema Ágil
-            </div>
-            <h1 class="text-2xl font-bold mb-2">Bem-vindo de volta!</h1>
-            <p class="text-secondary">Faça login para acessar sua conta</p>
-        </div>
+<div class="auth-container login-page">
+    <div class="auth-background">
+        <span class="auth-orb orb-1"></span>
+        <span class="auth-orb orb-2"></span>
+        <span class="auth-orb orb-3"></span>
+    </div>
 
-        <!-- Form -->
-        <form method="post" id="loginForm" novalidate>
-            {% csrf_token %}
-            
-            <!-- Username/Email Field -->
-            <div class="form-group">
-                <label for="{{ form.username.id_for_label }}" class="form-label">
-                    {{ form.username.label }}
-                </label>
-                {{ form.username }}
-                {% if form.username.errors %}
-                    <div class="form-error">
-                        {{ form.username.errors.0 }}
-                    </div>
-                {% endif %}
+    <div class="auth-shell">
+        <div class="auth-card login-card">
+            <div class="auth-header">
+                <h1>Login</h1>
+                <p>Facilitador de times ágeis e promotor de inovação organizacional</p>
             </div>
 
-            <!-- Password Field -->
-            <div class="form-group">
-                <label for="{{ form.password.id_for_label }}" class="form-label">
-                    {{ form.password.label }}
-                </label>
-                <div class="password-field">
-                    {{ form.password }}
-                    <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password.id_for_label }}')">
-                        <i class="fas fa-eye" id="toggleIcon"></i>
-                    </button>
-                </div>
-                {% if form.password.errors %}
-                    <div class="form-error">
-                        {{ form.password.errors.0 }}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Remember Me -->
-            <div class="form-group">
-                <label class="checkbox-container">
-                    {{ form.remember_me }}
-                    <span class="checkmark"></span>
-                    {{ form.remember_me.label }}
-                </label>
-            </div>
-
-            <!-- Non-field errors -->
             {% if form.non_field_errors %}
-                <div class="alert alert-error">
+                <div class="alert alert-error mb-4">
                     {{ form.non_field_errors.0 }}
                 </div>
             {% endif %}
 
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">
-                <i class="fas fa-sign-in-alt"></i>
-                Entrar
-            </button>
-        </form>
+            <form method="post" id="loginForm" novalidate>
+                {% csrf_token %}
 
-        <!-- Footer -->
-        <div class="text-center mt-6">
-            <p class="text-secondary text-sm">
-                Não tem uma conta?
-                <a href="{% url 'accounts:web_register' %}" class="link">Cadastre-se aqui</a>
-            </p>
-        </div>
+                <div class="form-field">
+                    <label for="{{ form.username.id_for_label }}">E-mail</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="form-error">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-        <!-- Forgot Password -->
-        <div class="text-center mt-4">
-            <a href="#" class="link text-sm">Esqueceu sua senha?</a>
+                <div class="form-field">
+                    <label for="{{ form.password.id_for_label }}">Senha</label>
+                    <div class="input-with-toggle">
+                        {{ form.password }}
+                        <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password.id_for_label }}')">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="form-error">{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-meta">
+                    <label class="remember">
+                        {{ form.remember_me }}
+                        <span>Lembrar de mim</span>
+                    </label>
+                    <a href="#" class="link muted">Esqueceu sua senha?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">
+                    Entrar
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>ou continue com</span>
+            </div>
+
+            <div class="social-login">
+                <button type="button" class="social-button google">
+                    <i class="fab fa-google"></i>
+                    Google
+                </button>
+                <button type="button" class="social-button microsoft">
+                    <i class="fab fa-microsoft"></i>
+                    Microsoft
+                </button>
+                <button type="button" class="social-button apple">
+                    <i class="fab fa-apple"></i>
+                    Apple
+                </button>
+            </div>
+
+            <div class="auth-footer">
+                <span>Ainda não tem conta?</span>
+                <a href="{% url 'accounts:web_register' %}">Criar conta</a>
+            </div>
         </div>
     </div>
 </div>
@@ -91,101 +90,319 @@
 
 {% block extra_css %}
 <style>
-    .password-field {
-        position: relative;
-        display: block;
-        height: 54px; /* Altura fixa para evitar mudanças de layout */
+    .auth-container.login-page {
+        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 55%),
+                    linear-gradient(180deg, #1b1b1f 0%, #121216 100%);
+        overflow: hidden;
     }
 
-    .password-field .form-input {
-        padding-right: 52px !important; /* Mais espaço para o toggle button */
+    .auth-container.login-page .auth-card {
+        max-width: 420px;
         width: 100%;
-        height: 54px; /* Altura fixa */
-        box-sizing: border-box;
+        background: rgba(18, 18, 22, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(12px);
+        padding: 3rem 3.25rem;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+        position: relative;
+        z-index: 2;
+    }
+
+    .auth-background {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+
+    .auth-shell {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .auth-orb {
+        position: absolute;
+        display: block;
+        border-radius: 50%;
+        filter: blur(0px);
+        opacity: 0.65;
+    }
+
+    .auth-orb.orb-1 {
+        width: 320px;
+        height: 320px;
+        top: -120px;
+        right: -60px;
+        background: radial-gradient(circle, rgba(255, 140, 66, 0.55) 0%, rgba(255, 107, 0, 0) 70%);
+    }
+
+    .auth-orb.orb-2 {
+        width: 220px;
+        height: 220px;
+        bottom: -80px;
+        left: -40px;
+        background: radial-gradient(circle, rgba(255, 188, 124, 0.4) 0%, rgba(255, 107, 0, 0) 75%);
+    }
+
+    .auth-orb.orb-3 {
+        width: 140px;
+        height: 140px;
+        top: 30%;
+        left: 55%;
+        background: radial-gradient(circle, rgba(255, 107, 0, 0.35) 0%, rgba(255, 107, 0, 0) 75%);
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .auth-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.75rem;
+    }
+
+    .auth-header p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        margin-bottom: 1.6rem;
+    }
+
+    .form-field label {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    .form-field .form-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.75rem;
+        padding: 0.95rem 1.1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-field .form-input:focus {
+        border-color: rgba(255, 107, 0, 0.65);
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.18);
+    }
+
+    .input-with-toggle {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.75rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .input-with-toggle .form-input {
+        border: none;
+        background: transparent;
+        padding-right: 3.5rem;
+    }
+
+    .input-with-toggle:focus-within {
+        border-color: rgba(255, 107, 0, 0.65);
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.18);
     }
 
     .password-toggle {
         position: absolute;
-        right: 20px;
         top: 50%;
+        right: 1rem;
         transform: translateY(-50%);
-        width: 20px;
-        height: 20px;
         background: none;
         border: none;
-        color: var(--text-inactive);
+        color: var(--text-secondary);
         cursor: pointer;
-        font-size: 0.95rem;
-        padding: 8px;
-        margin: 0;
-        transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10;
-        border-radius: 6px;
-        line-height: 1;
-        flex-shrink: 0;
+        padding: 0.25rem;
+        font-size: 1rem;
+        transition: color 0.2s ease;
     }
 
     .password-toggle:hover {
         color: var(--primary);
-        background-color: rgba(255, 107, 0, 0.1);
     }
 
-    .password-toggle:active {
-        transform: scale(0.95);
-    }
-
-    .checkbox-container {
+    .form-meta {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        justify-content: space-between;
+        margin-bottom: 2rem;
         font-size: 0.9rem;
         color: var(--text-secondary);
-        cursor: pointer;
     }
 
-    .checkbox-container input[type="checkbox"] {
+    .form-meta .remember {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .form-meta .remember input[type="checkbox"] {
         width: 18px;
         height: 18px;
         accent-color: var(--primary);
-        cursor: pointer;
     }
 
-    .auth-card {
-        animation: slideUp 0.5s ease-out;
+    .form-meta .link {
+        color: rgba(255, 255, 255, 0.72);
+        text-decoration: none;
+        transition: color 0.2s ease;
     }
 
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Focus states */
-    .form-input:focus + .password-toggle {
+    .form-meta .link:hover {
         color: var(--primary);
     }
 
-    /* Ensure proper password field alignment */
-    .password-field .form-input {
-        padding-right: 56px !important; /* Mais espaço para o toggle button */
-        box-sizing: border-box;
+    .divider {
+        position: relative;
+        text-align: center;
+        margin: 2.25rem 0 1.75rem;
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
     }
 
-    /* Loading state */
-    .btn.loading {
-        pointer-events: none;
+    .divider::before,
+    .divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 35%;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.35));
     }
 
-    .btn.loading i {
-        display: none;
+    .divider::before {
+        left: 0;
+    }
+
+    .divider::after {
+        right: 0;
+    }
+
+    .social-login {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .social-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        cursor: pointer;
+    }
+
+    .social-button:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .social-button.google {
+        border-color: rgba(255, 107, 0, 0.45);
+    }
+
+    .social-button.microsoft {
+        border-color: rgba(59, 130, 246, 0.35);
+    }
+
+    .social-button.apple {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-footer {
+        margin-top: 2.5rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 0.95rem;
+    }
+
+    .auth-footer a {
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+        margin-left: 0.35rem;
+    }
+
+    .auth-footer a:hover {
+        color: var(--hover);
+        text-decoration: underline;
+    }
+
+    .form-error {
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+        .auth-container.login-page .auth-card {
+            padding: 2.25rem 1.75rem;
+        }
+
+        .auth-header h1 {
+            font-size: 2rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            width: 30%;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .auth-container.login-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .auth-shell {
+            padding: 0;
+        }
+
+        .auth-header p {
+            font-size: 0.9rem;
+        }
+
+        .form-meta {
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .divider::before,
+        .divider::after {
+            width: 25%;
+        }
     }
 </style>
 {% endblock %}
@@ -195,7 +412,7 @@
     function togglePassword(fieldId) {
         const field = document.getElementById(fieldId);
         const icon = document.getElementById('toggleIcon');
-        
+
         if (field.type === 'password') {
             field.type = 'text';
             icon.className = 'fas fa-eye-slash';
@@ -208,44 +425,39 @@
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('loginForm');
         const submitBtn = document.getElementById('loginBtn');
-        
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // Clear previous errors
+
             document.querySelectorAll('.form-error').forEach(error => error.remove());
             document.querySelectorAll('.form-input.error').forEach(input => input.classList.remove('error'));
-            
-            // Get form data
-            const username = form.querySelector('[name="username"]').value.trim();
-            const password = form.querySelector('[name="password"]').value;
-            
+
+            const usernameField = form.querySelector('[name="username"]');
+            const passwordField = form.querySelector('[name="password"]');
+            const username = usernameField.value.trim();
+            const password = passwordField.value;
+
             let hasError = false;
-            
-            // Validate username
+
             if (!username) {
-                showFieldError(form.querySelector('[name="username"]'), 'Este campo é obrigatório.');
+                showFieldError(usernameField, 'Este campo é obrigatório.');
                 hasError = true;
             }
-            
-            // Validate password
+
             if (!password) {
-                showFieldError(form.querySelector('[name="password"]'), 'Este campo é obrigatório.');
+                showFieldError(passwordField, 'Este campo é obrigatório.');
                 hasError = true;
             }
-            
+
             if (!hasError) {
-                // Show loading state
                 const originalText = showLoading(submitBtn);
-                
-                // Submit form
+
                 setTimeout(() => {
                     form.submit();
                 }, 100);
             }
         });
-        
-        // Auto-focus first field
+
         const firstInput = form.querySelector('.form-input');
         if (firstInput) {
             firstInput.focus();

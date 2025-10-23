@@ -6,10 +6,12 @@ Script para corrigir automaticamente todos os problemas de setup do Django
 import os
 import sys
 import traceback
+from pathlib import Path
 
 # Configurar o ambiente Django
-sys.path.insert(0, '/Users/anderson/my_folders/repositoriolocal/xmen')
-os.chdir('/Users/anderson/my_folders/repositoriolocal/xmen')
+BASE_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(BASE_DIR))
+os.chdir(str(BASE_DIR))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'xmen_agileteam.settings')
 
 try:
